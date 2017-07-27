@@ -1,0 +1,9 @@
+
+CREATE FUNCTION [LoggerBase].Layout_GetDate()
+RETURNS DATE
+AS
+BEGIN
+
+    RETURN CAST(GETDATE() AS DATE)
+
+END

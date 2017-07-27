@@ -1,0 +1,9 @@
+The Logger checks the current config (default, saved, session, or override). 
+	This config lists the appenders and their configuration Active appenders are in the Root section, along with the logging level.
+	The user can override the logging level by setting it in the session.
+The logger gets a list of active appenders that are at or above the in-scope logging level.
+The logger iterates through the appenders, and invokes the procedure for the appender, passing along the appender configuration section, logging level, logger name, and message.
+The appender parses the configuration and calls the message formatter. 
+The message formatter looks at the configured layout and calls the layout handlers.
+The formatter returns the formatted message.
+The appender forwards the message to the logging implementation. This implementation could be writing to the message stream (T-SQL print statements), saving the message in a database table, or writing the message to a flat file.

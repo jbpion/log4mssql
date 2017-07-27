@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# SQL Server Management Studio Solution File, Format Version 14.00
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "log4mssql", "log4mssql\log4mssql.ssmssqlproj", "{76DACA30-D164-4FC7-A237-88A8CA47FF5B}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "log4mssql.Appender", "log4mssql.Appender\log4mssql.Appender.ssmssqlproj", "{DB97EDB0-70E3-4465-8274-035AC482F6BE}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "log4mssql.Config", "log4mssql.Config\log4mssql.Config.ssmssqlproj", "{67CCDF4D-41BE-423B-86E4-FEA85411E71A}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "log4mssql.Core", "log4mssql.Core\log4mssql.Core.ssmssqlproj", "{0746DD5F-2EA0-44BE-A905-9C847935947B}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "log4mssql.Layout", "log4mssql.Layout\log4mssql.Layout.ssmssqlproj", "{A09C1FA6-3D61-47BD-A99B-DC102886CA7F}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "log4mssql.Tests", "log4mssql.Tests\log4mssql.Tests.ssmssqlproj", "{428E1334-337A-4A9F-991D-BD69ECF16ED5}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "log4mssql.Logger", "log4mssql.Logger\log4mssql.Logger.ssmssqlproj", "{D3831CB0-9A93-4249-8BEA-AD64B205B85C}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "log4mssql.Session", "log4mssql.Session\log4mssql.Session.ssmssqlproj", "{896A7D6C-6A0C-49A0-AD35-DAF5E5A42830}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{307EB546-4264-4AB5-B66B-3CD2AC9495E4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Default|Default = Default|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{76DACA30-D164-4FC7-A237-88A8CA47FF5B}.Default|Default.ActiveCfg = Default
+		{DB97EDB0-70E3-4465-8274-035AC482F6BE}.Default|Default.ActiveCfg = Default
+		{67CCDF4D-41BE-423B-86E4-FEA85411E71A}.Default|Default.ActiveCfg = Default
+		{0746DD5F-2EA0-44BE-A905-9C847935947B}.Default|Default.ActiveCfg = Default
+		{A09C1FA6-3D61-47BD-A99B-DC102886CA7F}.Default|Default.ActiveCfg = Default
+		{428E1334-337A-4A9F-991D-BD69ECF16ED5}.Default|Default.ActiveCfg = Default
+		{D3831CB0-9A93-4249-8BEA-AD64B205B85C}.Default|Default.ActiveCfg = Default
+		{896A7D6C-6A0C-49A0-AD35-DAF5E5A42830}.Default|Default.ActiveCfg = Default
+		{4DCBCF2E-D474-4877-AB72-CE0D4D126539}.Default|Default.ActiveCfg = Default
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
