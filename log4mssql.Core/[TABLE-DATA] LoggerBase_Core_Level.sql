@@ -1,5 +1,5 @@
-IF OBJECT_ID('TempDB..#Values') IS NOT NULL DROP TABLE #Values
-CREATE TABLE #Values
+IF OBJECT_ID('TempDB..#LoggerBaseCore_Level') IS NOT NULL DROP TABLE #LoggerBaseCore_Level
+CREATE TABLE #LoggerBaseCore_Level
 (
      LogLevelName  VARCHAR(500) NOT NULL
     ,LogLevelValue INT          NOT NULL
@@ -7,7 +7,7 @@ CREATE TABLE #Values
 );
 
 
-INSERT INTO #Values VALUES
+INSERT INTO #LoggerBaseCore_Level VALUES
  ('OFF'      ,2147483647,'Level designates a higher level than all the rest.'),
  ('EMERGENCY',120000,    'Level designates very severe error events;System unusable, emergencies.'),
  ('FATAL'    ,110000,    'Level designates very severe error events that will presumably lead the application to abort.'),
@@ -31,12 +31,12 @@ SET
  S.LogLevelValue = V.LogLevelValue
 ,S.LogLevelDesc  = V.LogLevelDesc
 FROM LoggerBase.Core_Level S
-INNER JOIN #Values V ON S.LogLevelName = V.LogLevelName
+INNER JOIN #LoggerBaseCore_Level V ON S.LogLevelName = V.LogLevelName
 
 INSERT LoggerBase.Core_Level
 (LogLevelName, LogLevelValue, LogLevelDesc)
 SELECT LogLevelName, LogLevelValue, LogLevelDesc
-FROM #Values V
+FROM #LoggerBaseCore_Level V
 WHERE NOT EXISTS (SELECT LogLevelName FROM LoggerBase.Core_Level)
 
 

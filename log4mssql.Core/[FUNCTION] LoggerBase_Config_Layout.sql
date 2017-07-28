@@ -1,9 +1,6 @@
-IF OBJECT_ID('') IS NOT NULL DROP FUNCTION LoggerBase.Config_Layout
+IF OBJECT_ID('LoggerBase.Config_Layout') IS NOT NULL DROP FUNCTION LoggerBase.Config_Layout
 GO
 
-DROP FUNCTION LoggerBase.Config_Layout
-
-GO
 /*********************************************************************************************
 
     FUNCTION LoggerBase.Config_Layout

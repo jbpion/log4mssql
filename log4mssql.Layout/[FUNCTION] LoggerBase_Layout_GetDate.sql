@@ -1,5 +1,7 @@
+IF OBJECT_ID('LoggerBase.Layout_GetDate') IS NOT NULL DROP FUNCTION LoggerBase.Layout_GetDate
+GO
 
-CREATE FUNCTION [LoggerBase].Layout_GetDate()
+CREATE FUNCTION LoggerBase.Layout_GetDate()
 RETURNS DATE
 AS
 BEGIN

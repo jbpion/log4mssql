@@ -1,3 +1,5 @@
+IF OBJECT_ID('LoggerBase.Layout_LoginUser') IS NOT NULL DROP FUNCTION LoggerBase.Layout_LoginUser
+GO
 
 CREATE FUNCTION LoggerBase.Layout_LoginUser()
 RETURNS NVARCHAR(256)
