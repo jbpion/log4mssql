@@ -1,0 +1,9 @@
+﻿
+CREATE FUNCTION LoggerBase.Layout_LoginUser()
+RETURNS NVARCHAR(256)
+AS
+BEGIN
+
+    RETURN SUSER_NAME()
+
+END

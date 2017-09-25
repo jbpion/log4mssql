@@ -2,6 +2,7 @@ $StartingFolder = "$([environment]::getfolderpath("mydocuments"))\GitHub\log4mss
 $Files = @(
     "log4mssql\[SCHEMA] Logger.sql",
     "log4mssql\[SCHEMA] LoggerBase.sql",
+    "log4mssql.Layout\[FUNCTION] LoggerBase_Layout_GetConversionPatternFromConfig.sql",
     "log4mssql.Layout\[FUNCTION] LoggerBase_Layout_GetDate.sql",
     "log4mssql.Layout\[FUNCTION] LoggerBase_Layout_LoginUser.sql",
     "log4mssql.Layout\[PROCEDURE] LoggerBase_Layout_PatternLayout.sql",

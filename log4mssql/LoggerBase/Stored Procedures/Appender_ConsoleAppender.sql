@@ -1,15 +1,3 @@
-PRINT 'PROCEDURE LoggerBase.Appender_ConsoleAppender CREATED 07/07/2017'
-GO
-
-IF OBJECT_ID('LoggerBase.Appender_ConsoleAppender') IS NOT NULL
-BEGIN
-    PRINT '   DROP PROCEDURE LoggerBase.Appender_ConsoleAppender'
-    DROP PROCEDURE LoggerBase.Appender_ConsoleAppender
-END
-GO
-
-PRINT '   CREATE PROCEDURE LoggerBase.Appender_ConsoleAppender'
-GO
 
 /*********************************************************************************************
 
@@ -72,14 +60,4 @@ AS
 
 	PRINT @FormattedMessage
 
-GO
-
-IF @@ERROR = 0
-BEGIN
-    PRINT '   PROCEDURE LoggerBase.Appender_ConsoleAppender CREATED SUCCESSFULLY'
-END
-ELSE
-BEGIN
-    PRINT '   CREATE PROCEDURE LoggerBase.Appender_ConsoleAppender FAILED!'
-END
 GO

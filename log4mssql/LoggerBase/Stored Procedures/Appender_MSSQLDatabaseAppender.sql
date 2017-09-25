@@ -1,29 +1,80 @@
-PRINT 'PROCEDURE LoggerBase.Appender_ADOAppender CREATED 07/07/2017'
-GO
-
-IF OBJECT_ID('LoggerBase.Appender_ADOAppender') IS NOT NULL
-BEGIN
-    PRINT '   DROP PROCEDURE LoggerBase.Appender_ADOAppender'
-    DROP PROCEDURE LoggerBase.Appender_ADOAppender
-END
-GO
-
-PRINT '   CREATE PROCEDURE LoggerBase.Appender_ADOAppender'
-GO
-
+﻿
 /*********************************************************************************************
 
-    PROCEDURE LoggerBase.Appender_ADOAppender
+    PROCEDURE LoggerBase.Appender_MSSQLDatabaseAppender
    
+    Property of Clearent, LLC
     Date:           07/07/2017
     Author:         Jerome Pion
     Description:    Writes logging entries to database without enlisting in a transaction.
 
+	/*jpion: 2017-07-29: Changed name to reflect that tacking "Enlist=false" to the connection string may only work for MSSQL Server*/
     --TEST
+
+	DECLARE @Config XML = 
+'<appender name="MSSQLAppender" type="LoggerBase.Appender_MSSQLDatabaseAppender">
+	<connectionString value="data source=localhost;initial catalog=LoggerTest;integrated security=true;" />
+    <commandText value="INSERT INTO LoggerBase.TestLog ([Date],[Thread],[Level],[Logger],[Message],[Exception]) VALUES (@log_date, @thread, @log_level, @logger, @message, @exception)" />
+    <parameter>
+        <parameterName value="@log_date" />
+        <dbType value="DateTime" />
+        <layout type="LoggerBase.Layout_PatternLayout">
+            <conversionPattern value="%date" />
+        </layout>
+    </parameter>
+    <parameter>
+        <parameterName value="@thread" />
+        <dbType value="varchar(255)" />
+        <layout type="LoggerBase.Layout_PatternLayout">
+            <conversionPattern value="%thread" />
+        </layout>
+    </parameter>
+    <parameter>
+        <parameterName value="@log_level" />
+        <dbType value="varchar(50)" />
+        <layout type="LoggerBase.Layout_PatternLayout">
+            <conversionPattern value="%level" />
+        </layout>
+    </parameter>
+    <parameter>
+        <parameterName value="@logger" />
+        <dbType value="varchar(255)" />
+        <layout type="LoggerBase.Layout_PatternLayout">
+            <conversionPattern value="%logger" />
+        </layout>
+    </parameter>
+    <parameter>
+        <parameterName value="@message" />
+        <dbType value="varchar(4000)" />
+        <layout type="LoggerBase.Layout_PatternLayout">
+            <conversionPattern value="%message" />
+        </layout>
+    </parameter>
+    <parameter>
+        <parameterName value="@exception" />
+        <dbType value="varchar(2000)" />
+        <layout type="LoggerBase.Layout_PatternLayout" />
+    </parameter>
+</appender>'
+
+IF OBJECT_ID('LoggerBase.TestLog') IS NOT NULL DROP TABLE LoggerBase.TestLog
+CREATE TABLE LoggerBase.TestLog
+(
+	[Date] DATE
+	,[Thread] INT
+	,[Level] VARCHAR(500)
+	,[Logger] VARCHAR(500)
+	,[Message] VARCHAR(MAX)
+	,[Exception] VARCHAR(MAX)
+)
+
+EXEC LoggerBase.Appender_MSSQLDatabaseAppender @LoggerName = 'TestLogger', @LogLevelName = 'DEBUG', @Message = 'This is a test.', @Config = @Config
+, @Debug = 1
+SELECT * FROM LoggerBase.TestLog
 
 **********************************************************************************************/
 
-CREATE PROCEDURE LoggerBase.Appender_ADOAppender
+CREATE PROCEDURE LoggerBase.Appender_MSSQLDatabaseAppender
 (@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @Debug BIT=0)
 AS
 	SET NOCOUNT ON
@@ -112,21 +163,31 @@ AS
 
 SELECT @SQL = CONCAT('DECLARE ', @ParameterDefinition, '; ', @CommandText)
 IF (@Debug = 1) PRINT CONCAT(OBJECT_NAME(@@PROCID), ':@SQL:', @SQL)
-BEGIN
---EXEC (@SQL)
-	EXEC LoggerBase.Appender_ADOAppender_ExecNonTransactedQuery
-	 @connectionstring = @ConnectionString
-	,@query = @SQL
-END
+--BEGIN
+----EXEC (@SQL)
+--	--EXEC LoggerBase.Appender_MSSQLDatabaseAppender_ExecNonTransactedQuery
+--	-- @connectionstring = @ConnectionString
+--	--,@query = @SQL
+--END
+--SELECT 1 AS Tag
+--,NULL AS Parent
+--,NULL AS [Parameters!1!ParameterName]
+--,NULL AS [Parameter!2!DBType]
+--,NULL AS [Parameter!2!!CData]
+--UNION ALL
+--select 2 AS Tag
+--,1 AS Parent
+--,ParameterName  
+--,DBType         
+--,ParameterValue
+-- FROM #Parameters 
+-- FOR XML EXPLICIT;
 
-GO
+SELECT 1 AS Tag
+,NULL AS Parent
+,ParameterName AS [Parameter!1!ParameterName]
+,DBType AS [Parameter!1!DBType]
+,ParameterValue AS [Parameter!1!!CData]
+ FROM #Parameters 
+ FOR XML EXPLICIT;
 
-IF @@ERROR = 0
-BEGIN
-    PRINT '   PROCEDURE LoggerBase.Appender_ADOAppender CREATED SUCCESSFULLY'
-END
-ELSE
-BEGIN
-    PRINT '   CREATE PROCEDURE LoggerBase.Appender_ADOAppender FAILED!'
-END
-GO
