@@ -1,9 +1,0 @@
-IF OBJECT_ID('LoggerBase.Session_ContextID_Get') IS NOT NULL DROP FUNCTION LoggerBase.Session_ContextID_Get
-GO
-
-CREATE FUNCTION LoggerBase.Session_ContextID_Get()
-RETURNS VARBINARY(128)
-AS
-BEGIN
-	RETURN  CONTEXT_INFO()
-END
