@@ -1,5 +1,4 @@
-﻿
-/*********************************************************************************************
+﻿/*********************************************************************************************
 
     PROCEDURE LoggerBase.Appender_MSSQLDatabaseAppender
    
@@ -24,35 +23,40 @@
     </parameter>
     <parameter>
         <parameterName value="@thread" />
-        <dbType value="varchar(255)" />
+        <dbType value="VarChar" />
+	   <size value="255" />
         <layout type="LoggerBase.Layout_PatternLayout">
             <conversionPattern value="%thread" />
         </layout>
     </parameter>
     <parameter>
         <parameterName value="@log_level" />
-        <dbType value="varchar(50)" />
+        <dbType value="VarChar" />
+	   <size value="50" />
         <layout type="LoggerBase.Layout_PatternLayout">
             <conversionPattern value="%level" />
         </layout>
     </parameter>
     <parameter>
         <parameterName value="@logger" />
-        <dbType value="varchar(255)" />
+        <dbType value="VarChar" />
+	   <size value="255" />
         <layout type="LoggerBase.Layout_PatternLayout">
             <conversionPattern value="%logger" />
         </layout>
     </parameter>
     <parameter>
         <parameterName value="@message" />
-        <dbType value="varchar(4000)" />
+        <dbType value="VarChar" />
+	   <size value="4000" />
         <layout type="LoggerBase.Layout_PatternLayout">
             <conversionPattern value="%message" />
         </layout>
     </parameter>
     <parameter>
         <parameterName value="@exception" />
-        <dbType value="varchar(2000)" />
+        <dbType value="VarChar" />
+	   <size value="2000" />
         <layout type="LoggerBase.Layout_PatternLayout" />
     </parameter>
 </appender>'
@@ -99,6 +103,7 @@ AS
 	ROW_NUMBER() OVER (ORDER BY t.parameter.value('(parameterName/@value)[1]', 'varchar(MAX)')) AS RowID
 	,t.parameter.value('(parameterName/@value)[1]', 'varchar(MAX)') AS ParameterName
 	,t.parameter.value('(dbType/@value)[1]', 'varchar(MAX)') AS dbType
+	,t.parameter.value('(size/@value)[1]', 'varchar(MAX)') AS size
 	,t.parameter.value('(layout/@type)[1]', 'varchar(MAX)') AS LayoutType
 	,t.parameter.value('(layout/conversionPattern/@value)[1]', 'varchar(MAX)') AS ConversionPattern
 	,t.parameter.query('./layout') AS ParameterXML
@@ -107,7 +112,7 @@ AS
 	FROM @Config.nodes('/appender/parameter') as t(parameter)
 		--Get parameter name and datatype
 			--Use layout to get value.
-
+			select * from #Parameters
 	IF (@Debug = 1) PRINT CONCAT(OBJECT_NAME(@@PROCID), ':@CommandText:', @CommandText)
 
 	DECLARE @Counter INT
@@ -161,8 +166,8 @@ AS
 	SELECT @ParameterDefinition = COALESCE(@ParameterDefinition+',' ,'') + CONCAT(ParameterName, ' ' , dbType, ' = ''', ParameterValue, '''')
 	FROM #Parameters
 
-SELECT @SQL = CONCAT('DECLARE ', @ParameterDefinition, '; ', @CommandText)
-IF (@Debug = 1) PRINT CONCAT(OBJECT_NAME(@@PROCID), ':@SQL:', @SQL)
+--SELECT @SQL = CONCAT('DECLARE ', @ParameterDefinition, '; ', @CommandText)
+IF (@Debug = 1) PRINT CONCAT(OBJECT_NAME(@@PROCID), ':@SQL:', @CommandText)
 --BEGIN
 ----EXEC (@SQL)
 --	--EXEC LoggerBase.Appender_MSSQLDatabaseAppender_ExecNonTransactedQuery
@@ -183,11 +188,40 @@ IF (@Debug = 1) PRINT CONCAT(OBJECT_NAME(@@PROCID), ':@SQL:', @SQL)
 -- FROM #Parameters 
 -- FOR XML EXPLICIT;
 
-SELECT 1 AS Tag
-,NULL AS Parent
-,ParameterName AS [Parameter!1!ParameterName]
-,DBType AS [Parameter!1!DBType]
-,ParameterValue AS [Parameter!1!!CData]
- FROM #Parameters 
- FOR XML EXPLICIT;
+DECLARE @ParametersXML xml
 
+SET @ParametersXML = (
+	SELECT *
+	FROM
+	(
+	SELECT 1        AS Tag
+	,NULL           AS Parent
+	,NULL           AS [Parameters!1!ParameterName]
+	,NULL		 AS [Parameter!2!ParameterName]
+	,NULL           AS [Parameter!2!DBType]
+	,NULL           AS [Parameter!2!Size]
+	,NULL           AS [Parameter!2!!CData]
+	UNION ALL
+    SELECT 
+     2              AS Tag
+    ,1              AS Parent
+    ,ParameterName  AS [Parameter!2!ParameterName]
+    ,ParameterName  AS [Parameter!2!ParameterName]
+    ,DBType         AS [Parameter!2!DBType]
+    ,Size           AS [Parameter!2!Size]
+    ,ParameterValue AS [Parameter!2!!CData]
+    FROM #Parameters
+	) AS N
+    FOR XML EXPLICIT
+	--FOR XML PATH('Parameter'), ROOT('Parameters')
+ )
+
+ --print CONCAT('@ParametersXML ', CONVERT(VARCHAR(8000), @ParametersXML))
+ IF (@Debug = 1) PRINT CONCAT('@ParametersXML ', CONVERT(VARCHAR(8000), @ParametersXML))
+ ----EXEC (@SQL)
+EXEC [LoggerBase].[Appender_MSSQLSQLDatabaseAppender_ExecNonTransactedQuery]
+	 @ConnectionString = @ConnectionString
+	,@Query            = @CommandText
+	,@Parameters       = @ParametersXML
+	,@CommandTimeout   = 5
+	,@Debug            = @Debug 

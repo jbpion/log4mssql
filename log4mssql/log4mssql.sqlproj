@@ -24,6 +24,9 @@
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
     <GenerateCreateScript>True</GenerateCreateScript>
+    <PermissionSet>EXTERNAL_ACCESS</PermissionSet>
+    <AssemblyOwner>dbo</AssemblyOwner>
+    <Trustworthy>True</Trustworthy>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -69,7 +72,6 @@
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\Logger.sql" />
-    <Build Include="LoggerBase\Stored Procedures\Appender_ADOAppender.sql" />
     <Build Include="LoggerBase\Stored Procedures\Appender_ConsoleAppender.sql" />
     <Build Include="LoggerBase\Stored Procedures\Appender_MSSQLDatabaseAppender.sql" />
     <Build Include="LoggerBase\Stored Procedures\Config_Appenders_FilteredByLevel.sql" />
@@ -95,12 +97,13 @@
     <Build Include="LoggerBase\Tables\Config_SessionContext.sql" />
     <Build Include="LoggerBase\Tables\Core_Level.sql" />
     <Build Include="Logger\Stored Procedures\Debug.sql" />
+    <Build Include="LoggerBase\Stored Procedures\Appender_MSSQLSQLDatabaseAppender_ExecNonTransactedQuery.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\LoggerBase.sql" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LoggerBase\Assemblies\Exec_Non_Transacted_Query.cs" />
+    <Compile Include="LoggerBase\Assemblies\LoggerBase_Exec_Non_Transacted_Query.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
