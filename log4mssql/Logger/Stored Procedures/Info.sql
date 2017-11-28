@@ -39,5 +39,5 @@ AS
 	, @RequestedLogLevelName = 'INFO'
 	, @Config                = @Config
 	, @StoredConfigName      = @StoredConfigName
-	, @INFO                 = @INFO
+	, @DEBUG                 = @DEBUG
 

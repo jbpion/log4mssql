@@ -39,5 +39,5 @@ AS
 	, @RequestedLogLevelName = 'WARN'
 	, @Config                = @Config
 	, @StoredConfigName      = @StoredConfigName
-	, @WARN                 = @WARN
+	, @DEBUG                 = @DEBUG
 

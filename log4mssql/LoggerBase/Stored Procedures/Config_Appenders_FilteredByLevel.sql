@@ -34,7 +34,7 @@ AS
 	BEGIN
 		PRINT CONCAT('[',OBJECT_NAME(@@PROCID), ']:@Config:', CONVERT(VARCHAR(5000), @Config))
 		PRINT CONCAT('[',OBJECT_NAME(@@PROCID), ']:@RequestedLogLevelName:', @RequestedLogLevelName)
-		DECLARE @RowCount INT = (SELECT COUNT(*) FROM LoggerBase.Config_Root(@Config))
+		DECLARE @RowCount INT = (SELECT COUNT(*) FROM LoggerBase.Config_Root_Get(@Config))
 		PRINT CONCAT('[',OBJECT_NAME(@@PROCID), ']:LoggerBase.Config_Root returned rowcount:', @RowCount)
 		SET @RowCount = (SELECT COUNT(*) FROM LoggerBase.Config_Appenders_Get(@Config))
 		PRINT CONCAT('[',OBJECT_NAME(@@PROCID), ']:LoggerBase.Config_Appenders_Get returned rowcount:', @RowCount)
@@ -45,7 +45,7 @@ AS
 	ROW_NUMBER() OVER (ORDER BY A.AppenderName) AS RowID
 	,A.AppenderType
 	,A.AppenderConfig
-	FROM       LoggerBase.Config_Root     (@Config) R
+	FROM       LoggerBase.Config_Root_Get     (@Config) R
 	INNER JOIN LoggerBase.Config_Appenders_Get(@Config) A ON R.AppenderRef = A.AppenderName
 	--Check if we have an override in the session that changes the root-appender defined logging level.
 	INNER JOIN LoggerBase.Core_Level                    LL ON COALESCE(LoggerBase.Session_Level_Get(),  R.LevelValue)  = LL.LogLevelName

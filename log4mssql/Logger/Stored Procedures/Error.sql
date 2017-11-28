@@ -39,5 +39,5 @@ AS
 	, @RequestedLogLevelName = 'ERROR'
 	, @Config                = @Config
 	, @StoredConfigName      = @StoredConfigName
-	, @ERROR                 = @ERROR
+	, @DEBUG                 = @DEBUG
 

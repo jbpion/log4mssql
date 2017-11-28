@@ -1,26 +1,26 @@
 ﻿
 /*********************************************************************************************
 
-    PROCEDURE Logger.ERROR
+    PROCEDURE Logger.Fatal
 
     Date:           11/28/2017
     Author:         Jerome Pion
-    Description:    Log a ERROR level message.
+    Description:    Log a Fatal level message.
 
     --TEST
-	EXEC Logger.ERROR 'A test ERROR message', 'Test Logger'
-	EXEC Logger.ERROR @Message = 'A test ERROR message', @LoggerName = 'Test Logger', @DEBUG = 1
+	EXEC Logger.Fatal 'A test Fatal message', 'Test Logger'
+	EXEC Logger.Fatal @Message = 'A test Fatal message', @LoggerName = 'Test Logger', @DEBUG = 1
 
-	EXEC LoggerBase.Session_Level_Set 'ERROR', @ERROR = 1
+	EXEC LoggerBase.Session_Level_Set 'Fatal', @Fatal = 1
 	SELECT LoggerBase.Session_ContextID_Get()
 	SELECT LoggerBase.Session_Level_Get()
 	
-	EXEC Logger.ERROR 'A test ERROR message', 'Test Logger'
-	EXEC Logger.ERROR @Message = 'A test ERROR message', @LoggerName = 'Test Logger', @DEBUG = 1
+	EXEC Logger.Fatal 'A test Fatal message', 'Test Logger'
+	EXEC Logger.Fatal @Message = 'A test Fatal message', @LoggerName = 'Test Logger', @DEBUG = 1
 
 **********************************************************************************************/
 
-CREATE PROCEDURE Logger.ERROR
+CREATE PROCEDURE Logger.Fatal
 (
 	  @Message               VARCHAR(MAX)
 	, @LoggerName            VARCHAR(500)
@@ -36,8 +36,8 @@ AS
 	EXEC LoggerBase.Logger_Base 
 	  @Message               = @Message
 	, @LoggerName            = @LoggerName
-	, @RequestedLogLevelName = 'ERROR'
+	, @RequestedLogLevelName = 'FATAL'
 	, @Config                = @Config
 	, @StoredConfigName      = @StoredConfigName
-	, @ERROR                 = @ERROR
+	, @DEBUG                 = @DEBUG
 
