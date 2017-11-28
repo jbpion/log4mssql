@@ -35,4 +35,26 @@ You will get results like the following:
 2017-11-28 12:56:36.9617485 ERROR DefaultTest-Hello, World!
 2017-11-28 12:56:36.9637499 FATAL DefaultTest-Hello, World!
 ```
+# Configuration
+Logging configuration is set at a session level using XML. This XML is similar to log4net.
+## Changing The Logging Level
+One of the most basic configuration changes you can make is to change the logging level. For example, you may have put debug logging in your stored procedure. Normally you don't want to record those statements. If you need to set the level to debug you would change the level in the session.
+
+First you run a debug logging call using the default (saved) config:
+```
+EXEC Logger.Debug @Message = 'Hello, World!', @LoggerName = 'DefaultTest'
+```
+Your output should be only:
+```
+Commands completed successfully.
+```
+If you then set the session-scope level to "debug" the framework will send the message to the configured appender. In this case it is the default "console" appender.
+```
+EXEC LoggerBase.Session_Level_Set @LogLevelName = 'DEBUG'
+EXEC Logger.Debug @Message = 'Hello, World!', @LoggerName = 'DefaultTest'
+```
+You should now get a message like:
+```
+2017-11-28 13:09:17.1093443 DEBUG DefaultTest-Hello, World!
+```
 
