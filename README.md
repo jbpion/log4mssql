@@ -16,6 +16,23 @@ Will send the message "A test debug message" with a logger name of "Test Logger"
 
 If no session configuration is in scope the logger will use the stored default configuration which uses the console appender which to send a print event.
 
-# Configuration
-TODO
+# Getting Started
+log4mssql comes with a default configuration in the LoggerBase.Config_SavedTable. This sets the level at INFO.
+
+To test you can run the following:
+```
+EXEC Logger.Debug @Message = 'Hello, World!', @LoggerName = 'DefaultTest' --This will not return because the minimum level is INFO.
+EXEC Logger.Info @Message = 'Hello, World!', @LoggerName = 'DefaultTest'
+EXEC Logger.Warn @Message = 'Hello, World!', @LoggerName = 'DefaultTest'
+EXEC Logger.Error @Message = 'Hello, World!', @LoggerName = 'DefaultTest'
+EXEC Logger.Fatal @Message = 'Hello, World!', @LoggerName = 'DefaultTest'
+```
+
+You will get results like the following:
+```
+2017-11-28 12:56:36.9197193 INFO DefaultTest-Hello, World!
+2017-11-28 12:56:36.9577457 WARN DefaultTest-Hello, World!
+2017-11-28 12:56:36.9617485 ERROR DefaultTest-Hello, World!
+2017-11-28 12:56:36.9637499 FATAL DefaultTest-Hello, World!
+```
 
