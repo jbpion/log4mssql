@@ -96,7 +96,8 @@ properties {
 
   task CreateInstallScript -depends ScriptAssemblyFromDatabase {
       $sqlFiles = @(
-         "Security\Logger.sql"
+        "..\Build\InstallScriptHeader.sql"
+        ,"Security\Logger.sql"
         ,"Security\LoggerBase.sql"
         ,"LoggerBase\Assemblies\LoggerBase_Exec_Non_Transacted_Query.sql"
         ,"LoggerBase\Tables\Config_Saved.sql"
@@ -113,10 +114,10 @@ properties {
         ,"LoggerBase\Functions\Config_Layout.sql"
         ,"LoggerBase\Functions\Config_RetrieveFromSession.sql"
         ,"LoggerBase\Functions\Config_Root_Get.sql"
+        ,"LoggerBase\Stored Procedures\Session_ContextID_Set.sql"
         ,"LoggerBase\Stored Procedures\Session_Level_Set.sql"
         ,"LoggerBase\Stored Procedures\Session_Clear.sql"
         ,"LoggerBase\Stored Procedures\Session_Config_Set.sql"
-        ,"LoggerBase\Stored Procedures\Session_ContextID_Set.sql"
         ,"LoggerBase\Stored Procedures\Layout_PatternLayout.sql"
         ,"LoggerBase\Stored Procedures\Config_Appenders_FilteredByLevel.sql"
         ,"LoggerBase\Stored Procedures\Config_Retrieve.sql"
@@ -130,16 +131,10 @@ properties {
         ,"Logger\Stored Procedures\Fatal.sql"
         ,"Logger\Stored Procedures\Info.sql"
         ,"Logger\Stored Procedures\Warn.sql"
+        , "..\Build\InstallScriptFooter.sql"
       )
 
-      "
-      EXEC sp_configure 'clr enabled', 1;
-      RECONFIGURE;
-      GO
-      
-      ALTER DATABASE CURRENT  SET TRUSTWORTHY ON
-      GO
-      " | Set-Content $OutputFile
+    $null | Set-Content $OutputFile
 
       foreach ($sqlFile in $sqlFiles)
       {
