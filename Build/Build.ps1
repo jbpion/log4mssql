@@ -12,7 +12,11 @@ properties {
     $OutputFile = [System.IO.Path]::Combine($buildDirectory, $installScriptName);
   }
 
-  task default
+  task default -depends Build
+
+  task Build  -depends CreateInstallScript, ApplyInstallScript, RunTests {
+
+  }
 
   task DropDatabase {
     $dropDatabaseQuery = [string]::Format("IF EXISTS (SELECT * FROM master.sys.databases WHERE name = '{0}')
@@ -30,18 +34,19 @@ properties {
       if (! (Test-Path $DataFileDirectory)) {New-Item -Name $buildDatabaseName -Path $buildDatabaseDataFilePath -ItemType Directory}
       if (! (Test-Path $LogFileDirectory)) {New-Item -Name $buildDatabaseName -Path $buildDatabaseLogFilePath -ItemType Directory}
 
-      $createDatabaseQuery = [string]::Format("CREATE DATABASE [Log4MSSQLBuild]
+      $createDatabaseQuery = [string]::Format("CREATE DATABASE [{0}]
       CONTAINMENT = NONE
       ON  PRIMARY 
-     ( NAME = N'Log4MSSQLBuild', FILENAME = N'C:\MSSQL\Data\Log4MSSQLBuild\Log4MSSQLBuild.mdf' , SIZE = 4096KB , FILEGROWTH = 1024KB )
+     ( NAME = N'{0}', FILENAME = N'C:\MSSQL\Data\{0}\{0}.mdf' , SIZE = 4096KB , FILEGROWTH = 1024KB )
       LOG ON 
-     ( NAME = N'Log4MSSQLBuild_log', FILENAME = N'C:\MSSQL\Logs\Log4MSSQLBuild\Log4MSSQLBuild_log.ldf' , SIZE = 1024KB , FILEGROWTH = 10%)
+     ( NAME = N'{0}_log', FILENAME = N'C:\MSSQL\Logs\{0}\{0}_log.ldf' , SIZE = 1024KB , FILEGROWTH = 10%)
      GO
-     ALTER DATABASE [Log4MSSQLBuild] SET COMPATIBILITY_LEVEL = 120
+     ALTER DATABASE [{0}] SET COMPATIBILITY_LEVEL = 120
      GO
-     ALTER DATABASE [Log4MSSQLBuild] SET RECOVERY SIMPLE 
-     GO"
-      )
+     ALTER DATABASE [{0}] SET RECOVERY SIMPLE 
+     GO
+     ALTER AUTHORIZATION ON DATABASE::[{0}] TO [sa]"
+      ,$buildDatabaseName)
 
       Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database master -Query $createDatabaseQuery
     
@@ -125,6 +130,7 @@ properties {
         ,"LoggerBase\Stored Procedures\Appender_MSSQLSQLDatabaseAppender_ExecNonTransactedQuery.sql"
         ,"LoggerBase\Stored Procedures\Appender_ConsoleAppender.sql"
         ,"LoggerBase\Stored Procedures\Appender_MSSQLDatabaseAppender.sql"
+        ,"LoggerBase\Stored Procedures\Appender_LocalDatabaseAppender.sql"
         ,"LoggerBase\Stored Procedures\Logger_Base.sql"
         ,"Logger\Stored Procedures\Debug.sql"
         ,"Logger\Stored Procedures\Error.sql"
@@ -156,4 +162,13 @@ properties {
 
   task ApplyInstallScript -depends CreateDatabase{
     Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -InputFile $OutputFile
+  }
+
+  task InstalltSQLt {
+    Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -InputFile $([System.IO.Path]::Combine($srcDirectory, "log4mssql\Tests\tSQLt\SetClrEnabled.sql"))
+    Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -InputFile $([System.IO.Path]::Combine($srcDirectory, "log4mssql\Tests\tSQLt\tSQLt.class.sql"))
+  }
+
+  task RunTests -depends InstalltSQLt{
+    Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -InputFile $([System.IO.Path]::Combine($srcDirectory, "log4mssql\Tests\LoggerTests.sql")) -Verbose
   }
