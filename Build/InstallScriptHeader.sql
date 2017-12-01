@@ -27,13 +27,23 @@ SET NOCOUNT ON;
 DECLARE @Message NVARCHAR(MAX);SELECT @Message = CONCAT(CONVERT(NVARCHAR,GETDATE(),121),':Installation started'); RAISERROR(@Message,0,1);
 GO
 
-DECLARE @Message NVARCHAR(MAX);SELECT @Message = CONCAT(CONVERT(NVARCHAR,GETDATE(),121),':Enabling the CLR for the current database'); RAISERROR(@Message,0,1);
-EXEC sp_configure 'clr enabled', 1;
+IF ServerProperty('EngineEdition') <> 5
+BEGIN
+	DECLARE @Message NVARCHAR(MAX);SELECT @Message = CONCAT(CONVERT(NVARCHAR,GETDATE(),121),':Enabling the CLR for the current database'); RAISERROR(@Message,0,1);
+	EXEC sp_configure 'clr enabled', 1;
 
-SELECT @Message = 'Running the reconfigure command'; RAISERROR(@Message,0,1);
-RECONFIGURE;
+	SELECT @Message = 'Running the reconfigure command'; RAISERROR(@Message,0,1);
+	RECONFIGURE;
+END
+ELSE
+BEGIN
+	SELECT @Message = CONCAT(CONVERT(NVARCHAR,GETDATE(),121),':Install is running in Azure. Skipping CLR configuration.'); RAISERROR(@Message,0,1);
+END
 GO
-     
-DECLARE @Message NVARCHAR(MAX);SELECT @Message = CONCAT(CONVERT(NVARCHAR,GETDATE(),121),':Setting TRUSTWORTHY on for current database to run CLR stored procedures and functions.'); RAISERROR(@Message,0,1); 
-ALTER DATABASE CURRENT SET TRUSTWORTHY ON
+
+IF ServerProperty('EngineEdition') <> 5
+BEGIN     
+	DECLARE @Message NVARCHAR(MAX);SELECT @Message = CONCAT(CONVERT(NVARCHAR,GETDATE(),121),':Setting TRUSTWORTHY on for current database to run CLR stored procedures and functions.'); RAISERROR(@Message,0,1); 
+	ALTER DATABASE CURRENT SET TRUSTWORTHY ON
+END
 GO

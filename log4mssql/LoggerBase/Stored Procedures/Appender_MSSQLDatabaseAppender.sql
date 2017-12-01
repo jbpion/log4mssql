@@ -1,4 +1,10 @@
-﻿EXEC('
+﻿IF ServerProperty('EngineEdition') = 5
+BEGIN
+	DECLARE @Message NVARCHAR(MAX);SELECT @Message = CONCAT(CONVERT(NVARCHAR,GETDATE(),121),':LoggerBase.Appender_MSSQLDatabaseAppender requires CLR with external access which is not supported in Azure. This appendeder will not be available.'); RAISERROR(@Message,0,1);
+END
+ELSE
+BEGIN
+EXEC('
 /*********************************************************************************************
 
     PROCEDURE LoggerBase.Appender_MSSQLDatabaseAppender
@@ -228,3 +234,4 @@ EXEC [LoggerBase].[Appender_MSSQLSQLDatabaseAppender_ExecNonTransactedQuery]
 	,@Debug            = @Debug 
 
 ')
+END

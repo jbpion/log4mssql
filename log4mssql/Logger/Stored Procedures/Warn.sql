@@ -20,7 +20,7 @@
 
 **********************************************************************************************/
 
-CREATE PROCEDURE Logger.WARN
+CREATE PROCEDURE Logger.Warn
 (
 	  @Message               VARCHAR(MAX)
 	, @LoggerName            VARCHAR(500)

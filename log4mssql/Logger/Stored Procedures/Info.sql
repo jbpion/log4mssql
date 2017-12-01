@@ -20,7 +20,7 @@
 
 **********************************************************************************************/
 
-CREATE PROCEDURE Logger.INFO
+CREATE PROCEDURE Logger.Info
 (
 	  @Message               VARCHAR(MAX)
 	, @LoggerName            VARCHAR(500)
