@@ -5,7 +5,7 @@ This is a logging framework for T-SQL (SQL Server) stored procedure that is desi
 This framework is an attempt to mirror some of the capabilities found in the Apache Project's popular log4net framework in Microsoft SQL Server's T-SQL language. The framework uses a similar XML configuration to log4net which can be set as a default, defined for the scope of a session, or defined ad hoc. A developer, primarily of stored procedures, can create logging statements and then change how messages are layed out and handled without changing any code.
 
 # Installation
-Run the log4mssql_install.sql file in the database context where you want to install the framework.
+Run the log4mssql_install.sql file from the Build folder in the database context where you want to install the framework.
 
 # Usage
 The logging stored procedures reflect log4net's log object methods of Debug, Info, Warn, Error, and Fatal. To define a logging statement you provide the message and the logger name. For example:
