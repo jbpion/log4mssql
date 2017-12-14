@@ -8,6 +8,7 @@ properties {
     $buildDatabaseLogFilePath = "C:\MSSQL\Logs"
     $srcDirectory = "C:\Users\jpion\Documents\GitHub\log4mssql"
     $buildDirectory = [System.IO.Path]::Combine($srcDirectory, "Build");
+    $testsDirectory = "$buildDirectory\..\log4mssql\Tests";
     $installScriptName = "log4mssql_install.sql"
     $OutputFile = [System.IO.Path]::Combine($buildDirectory, $installScriptName);
   }
@@ -121,6 +122,7 @@ properties {
         ,"LoggerBase\Functions\Config_Layout.sql"
         ,"LoggerBase\Functions\Config_RetrieveFromSession.sql"
         ,"LoggerBase\Functions\Config_Root_Get.sql"
+		,"LoggerBase\Functions\Appender_File_WriteTextFile.sql"
         ,"LoggerBase\Stored Procedures\Session_ContextID_Set.sql"
         ,"LoggerBase\Stored Procedures\Session_Level_Set.sql"
         ,"LoggerBase\Stored Procedures\Session_Clear.sql"
@@ -173,4 +175,6 @@ properties {
 
   task RunTests -depends InstalltSQLt{
     Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -InputFile $([System.IO.Path]::Combine($srcDirectory, "log4mssql\Tests\LoggerTests.sql")) -Verbose
-  }
+    Import-Module Pester
+    Invoke-Pester -Script @{Path ="$testsDirectory\LoggerTest.Appender.File.Tests.ps1"; Parameters = @{ buildDatabaseServer = $buildDatabaseServer; buildDatabaseName = $buildDatabaseName; testsDirectory = $testsDirectory }}
+  } 

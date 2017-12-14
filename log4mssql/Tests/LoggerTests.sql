@@ -98,6 +98,13 @@ EXEC tSQLt.AssertEqualsTable @Expected = '#Expected', @Actual = '#Actual'
 END;
 GO
 
+CREATE PROCEDURE loggerbasetests.[Test Assert Function Appender_File_WriteTextFile Writes A New File]
+AS
+BEGIN
+	SELECT [LoggerBase].[Appender_File_WriteTextFile]('Just a test message', 'C:\Temp\FileAppenderTest.txt', 0)
+END;
+GO
+
 EXEC tSQLt.Run 'loggerbasetests'
 GO
 

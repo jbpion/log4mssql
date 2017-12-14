@@ -2,6 +2,7 @@ using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
+using System.IO;
 using System.Xml;
 using Microsoft.SqlServer.Server;
 
@@ -103,3 +104,92 @@ public partial class StoredProcedures
             }
     }
 }
+
+public class ReadWriteFiles
+{
+  [SqlFunction]
+  public static SqlBoolean WriteTextFile(SqlString text,
+                                        SqlString path,
+                                        SqlBoolean append)
+  {
+    // Parameters
+    // text: Contains information to be written.
+    // path: The complete file path to write to.
+    // append: Determines whether data is to be appended to the file.
+    // if the file exists and append is false, the file is overwritten.
+    // If the file exists and append is true, the data is appended to the file.
+    // Otherwise, a new file is created.
+    try
+    {
+      // Check for null input.
+      if (!text.IsNull &&
+          !path.IsNull &&
+          !append.IsNull)
+      {
+        // Get the directory information for the specified path.
+        var dir = Path.GetDirectoryName(path.Value);
+        // Determine whether the specified path refers to an existing directory.
+        if (!Directory.Exists(dir))
+          // Create all the directories in the specified path.
+          Directory.CreateDirectory(dir);
+        // Initialize a new instance of the StreamWriter class
+        // for the specified file on the specified path.
+        // If the file exists, it can be either overwritten or appended to.
+        // If the file does not exist, create a new file.
+        using (var sw = new StreamWriter(path.Value, append.Value))
+        {
+          // Write specified text followed by a line terminator.
+          sw.WriteLine(text);
+        }
+        // Return true on success.
+        return SqlBoolean.True;
+      }
+      else
+        // Return null if any input is null.
+        return SqlBoolean.Null;
+    }
+    catch (Exception ex)
+    {
+      // Return null on error.
+	  SqlContext.Pipe.Send(ex.Message);
+      return SqlBoolean.Null;
+    }
+  }
+  [SqlProcedure]
+  public static void ReadTextFile(SqlString path)
+  {
+    // Parameters
+    // path: The complete file path to read from.
+    try
+    {
+      // Check for null input.
+      if (!path.IsNull)
+      {
+        // Initialize a new instance of the StreamReader class for the specified path.
+        using (var sr = new StreamReader(path.Value))
+        {
+          // Create the record and specify the metadata for the column.
+          var rec = new SqlDataRecord(
+                            new SqlMetaData("Line", SqlDbType.NVarChar, SqlMetaData.Max));
+          // Mark the beginning of the result-set.
+          SqlContext.Pipe.SendResultsStart(rec);
+          // Determine whether the end of the file.
+          while (sr.Peek() >= 0)
+          {
+            // Set value for the column.
+            rec.SetString(0, sr.ReadLine());
+            // Send the row back to the client.
+            SqlContext.Pipe.SendResultsRow(rec);
+          }
+          // Mark the end of the result-set.
+          SqlContext.Pipe.SendResultsEnd();
+        }
+      }
+    }
+    catch (Exception ex)
+    {
+      // Send exception message on error.
+      SqlContext.Pipe.Send(ex.Message);
+    }
+  }
+};
