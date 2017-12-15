@@ -107,10 +107,12 @@ public partial class StoredProcedures
 
 public class ReadWriteFiles
 {
-  [SqlFunction]
-  public static SqlBoolean WriteTextFile(SqlString text,
+  [Microsoft.SqlServer.Server.SqlProcedure]
+  public static void WriteTextFile(SqlString text,
                                         SqlString path,
-                                        SqlBoolean append)
+                                        SqlBoolean append,
+										out SqlInt32 exitCode,
+										out SqlString errorMessage)
   {
     // Parameters
     // text: Contains information to be written.
@@ -119,6 +121,7 @@ public class ReadWriteFiles
     // if the file exists and append is false, the file is overwritten.
     // If the file exists and append is true, the data is appended to the file.
     // Otherwise, a new file is created.
+	errorMessage = new SqlString(string.Empty);
     try
     {
       // Check for null input.
@@ -142,17 +145,20 @@ public class ReadWriteFiles
           sw.WriteLine(text);
         }
         // Return true on success.
-        return SqlBoolean.True;
+       
+		exitCode = new SqlInt32(0);
       }
       else
         // Return null if any input is null.
-        return SqlBoolean.Null;
+		exitCode = new SqlInt32(1);
     }
     catch (Exception ex)
     {
       // Return null on error.
-	  SqlContext.Pipe.Send(ex.Message);
-      return SqlBoolean.Null;
+	  //SqlContext.Pipe.Send(ex.Message);
+	  errorMessage = new SqlString(ex.Message);
+      //return -1 #SqlBoolean.True;
+	  exitCode = new SqlInt32(-1);
     }
   }
   [SqlProcedure]

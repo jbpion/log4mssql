@@ -55,7 +55,7 @@ properties {
 
   task CompileCLRAssembly {
     "C:\Users\jpion\Documents\GitHub\log4mssql\log4mssql\LoggerBase\Assemblies\LoggerBase_Exec_Non_Transacted_Query.cs"
-    c:\Windows\microsoft.net\Framework\v3.5\csc.exe /target:library /out:"C:\Users\jpion\Documents\GitHub\log4mssql\log4mssql\LoggerBase\Assemblies\LoggerBase_Exec_Non_Transacted_Query.dll" "C:\Users\jpion\Documents\GitHub\log4mssql\log4mssql\LoggerBase\Assemblies\LoggerBase_Exec_Non_Transacted_Query.cs"
+    EXEC {c:\Windows\microsoft.net\Framework\v3.5\csc.exe /target:library /out:"C:\Users\jpion\Documents\GitHub\log4mssql\log4mssql\LoggerBase\Assemblies\LoggerBase_Exec_Non_Transacted_Query.dll" "C:\Users\jpion\Documents\GitHub\log4mssql\log4mssql\LoggerBase\Assemblies\LoggerBase_Exec_Non_Transacted_Query.cs"}
   }
 
   task RegisterAssemblyWithDatabase -depends CompileCLRAssembly, CreateDatabase {
@@ -122,7 +122,7 @@ properties {
         ,"LoggerBase\Functions\Config_Layout.sql"
         ,"LoggerBase\Functions\Config_RetrieveFromSession.sql"
         ,"LoggerBase\Functions\Config_Root_Get.sql"
-		,"LoggerBase\Functions\Appender_File_WriteTextFile.sql"
+		,"LoggerBase\Stored Procedures\Appender_File_WriteTextFile.sql"
         ,"LoggerBase\Stored Procedures\Session_ContextID_Set.sql"
         ,"LoggerBase\Stored Procedures\Session_Level_Set.sql"
         ,"LoggerBase\Stored Procedures\Session_Clear.sql"
@@ -174,7 +174,7 @@ properties {
   }
 
   task RunTests -depends InstalltSQLt{
-    Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -InputFile $([System.IO.Path]::Combine($srcDirectory, "log4mssql\Tests\LoggerTests.sql")) -Verbose
+    Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -InputFile $([System.IO.Path]::Combine($srcDirectory, "log4mssql\Tests\LoggerTests.sql")) -Verbose -ErrorAction Stop
     Import-Module Pester
     Invoke-Pester -Script @{Path ="$testsDirectory\LoggerTest.Appender.File.Tests.ps1"; Parameters = @{ buildDatabaseServer = $buildDatabaseServer; buildDatabaseName = $buildDatabaseName; testsDirectory = $testsDirectory }}
   } 
