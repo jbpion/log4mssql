@@ -5,14 +5,8 @@
 param($buildDatabaseServer,$buildDatabaseName, $testsDirectory)
 
 $outputTestFile = [System.IO.Path]::Combine($testsDirectory, "FileAppenderTest.txt")
-function Write-FileUsingSql
+function Write-FileUsingSql($buildDatabaseServer, $buildDatabaseName, $outputTestFile)
 {
-    if (Test-Path $outputTestFile) {Remove-Item -Path $outputTestFile}
-    function Write-FileUsingSql
-    ($buildDatabaseServer, $buildDatabaseName, $outputTestFile)
-    {
-        if (Test-Path $outputTestFile) {Remove-Item -Path $outputTestFile}
-    
         $SqlConnection = New-Object System.Data.SqlClient.SqlConnection
         $SqlConnection.ConnectionString = "Server=$buildDatabaseServer;Database=$buildDatabaseName;Integrated Security=True"
         $SqlCmd = $SqlConnection.CreateCommand();
@@ -58,9 +52,9 @@ function Write-FileUsingSql
         $result = $SqlCmd.ExecuteNonQuery();
         #$truth = $SqlCmd.Parameters["@answer"].Value;
         Write-Host $SqlCmd.Parameters["@errorMessage"].Value;
-        Write-Host "@path: $($SqlCmd.Parameters["@path"])"
+        # Write-Host "@path: $($SqlCmd.Parameters["@path"].Value)"
         $SqlConnection.Close();
-    }
+        return $SqlCmd.Parameters["@errorMessage"].Value;
 
     # if ($Result -eq $null)
     # {
@@ -72,13 +66,28 @@ function Write-FileUsingSql
 function Test-FileUsingSql
 {
     # Write-Host "Running Appender_File_WriteTextFile"
-    Write-FileUsingSql -buildDatabaseServer $buildDatabaseServer -buildDatabaseName $buildDatabaseName -outputTestFile $outputTestFile
+    $Err = Write-FileUsingSql -buildDatabaseServer $buildDatabaseServer -buildDatabaseName $buildDatabaseName -outputTestFile $outputTestFile
      Write-Host "Checking for $outputTestFile"
     return Test-Path $outputTestFile
+}
+
+function Test-FileException
+{
+    $ErrorMessage = Write-FileUsingSql -buildDatabaseServer $buildDatabaseServer -buildDatabaseName $buildDatabaseName -outputTestFile $($env:ProgramFiles) #Shouldn't have permission here.
+    #$Parms
+    #$ErrorMessage = $Parms["@errorMessage"].Value;
+    Write-Host "ERR: $ErrorMessage";
+    if ($ErrorMessage -ilike '*Access*denied*'){return $true}else{return $false}
 }
 
 Describe "LoggerTest.Appender.File" {
     It "Writes a file to disk." {
         Test-FileUsingSql | Should Be $true
+    }
+}
+
+Describe "LoggerTest.Appender.File" {
+    It "Cannot write the file." {
+        Test-FileException | Should Be $true
     }
 }
