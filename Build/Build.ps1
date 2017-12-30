@@ -1,3 +1,13 @@
+<#To run build:
+1) Download psake from https://github.com/psake/psake
+2) Set-Location <psake download location>
+3) Import-Module psake.psm1 
+4) Download tSQLt from http://tsqlt.org/downloads/ to \log4mssql\log4mssql\Tests and extract the zip file.
+5) Set-Location .\log4mssql\Build
+6) Invoke-psake .\Build.ps1
+7) To run a specific target add the target name. E.g. To run tests: Invoke-psake .\Build.ps1 RunTests
+#>
+
 properties {
     $testMessage = 'Executed Test!'
     $compileMessage = 'Executed Compile!'
@@ -122,7 +132,7 @@ properties {
         ,"LoggerBase\Functions\Config_Layout.sql"
         ,"LoggerBase\Functions\Config_RetrieveFromSession.sql"
         ,"LoggerBase\Functions\Config_Root_Get.sql"
-		,"LoggerBase\Stored Procedures\Appender_File_WriteTextFile.sql"
+		,"LoggerBase\Stored Procedures\Appender_File_Private_WriteTextFile.sql"
         ,"LoggerBase\Stored Procedures\Session_ContextID_Set.sql"
         ,"LoggerBase\Stored Procedures\Session_Level_Set.sql"
         ,"LoggerBase\Stored Procedures\Session_Clear.sql"
@@ -133,6 +143,7 @@ properties {
         ,"LoggerBase\Stored Procedures\Layout_FormatMessage.sql"
         ,"LoggerBase\Stored Procedures\Appender_MSSQLSQLDatabaseAppender_ExecNonTransactedQuery.sql"
         ,"LoggerBase\Stored Procedures\Appender_ConsoleAppender.sql"
+        ,"LoggerBase\Stored Procedures\Appender_FileAppender.sql"
         ,"LoggerBase\Stored Procedures\Appender_MSSQLDatabaseAppender.sql"
         ,"LoggerBase\Stored Procedures\Appender_LocalDatabaseAppender.sql"
         ,"LoggerBase\Stored Procedures\Logger_Base.sql"
