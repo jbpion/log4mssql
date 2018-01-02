@@ -27,7 +27,7 @@
 
 **********************************************************************************************/
 
-CREATE PROCEDURE LoggerBase.Appender_ConsoleAppender (@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @Debug BIT=0)
+CREATE PROCEDURE LoggerBase.Appender_ConsoleAppender (@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config LoggerBase.ConfigurationProperties READONLY, @Debug BIT=0)
 AS
 	
 	SET NOCOUNT ON
@@ -36,7 +36,7 @@ AS
 
 	DECLARE @FormattedMessage VARCHAR(MAX)
 	DECLARE @LayoutType       SYSNAME
-	DECLARE @LayoutConfig     XML
+	DECLARE @LayoutConfig     LoggerBase.ConfigurationProperties
 	DECLARE @SQL              NVARCHAR(MAX)
 
 	SELECT @LayoutType = LayoutType, @LayoutConfig = LayoutConfig FROM LoggerBase.Config_Layout(@Config)

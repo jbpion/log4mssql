@@ -1,4 +1,4 @@
-﻿
+
 /*********************************************************************************************
 
     PROCEDURE LoggerBase.Layout_PatternLayout
@@ -8,15 +8,7 @@
     Description:    A simple implemention of a pattern layout that does simple token replacement.
 
     --TEST
-	DECLARE @FormattedMessage VARCHAR(MAX)
-	EXEC LoggerBase.Layout_PatternLayout 
-	  @LoggerName   = 'LoggerName'
-	, @LogLevelName = 'DEBUG'
-	, @Message      = 'A test message'
-	, @Config       = '<layout type="LoggerBase.Layout_PatternLayout"><conversionPattern value="[%timestamp] [%thread] %level - %logger - %message%newline"/></layout>'
-	, @Debug        = 0
-	, @FormattedMessage = @FormattedMessage OUTPUT
-	SELECT @FormattedMessage
+
 
 **********************************************************************************************/
 
@@ -25,17 +17,25 @@ CREATE PROCEDURE LoggerBase.Layout_PatternLayout
 	  @LoggerName   VARCHAR(500)
 	, @LogLevelName VARCHAR(500)
 	, @Message      VARCHAR(MAX)
-	, @Config       XML
+	, @Config       LoggerBase.ConfigurationProperties READONLY
 	, @Debug        BIT=0
 	, @FormattedMessage VARCHAR(MAX) OUTPUT
 )
 AS
 	SET NOCOUNT ON
 	
-	DECLARE @ConversionPattern VARCHAR(MAX) = LoggerBase.Layout_GetConversionPatternFromConfig(@Config)
+	DECLARE @ConversionPattern VARCHAR(MAX) = LoggerBase.Layout_GetConversionPatternFromConfigProperties(@Config)
 
-	SET @FormattedMessage = @ConversionPattern
-	
+	IF (@Debug = 1)
+	BEGIN
+		PRINT CONCAT('[',OBJECT_NAME(@@PROCID), ']:@ConversionPattern:', CONVERT(VARCHAR(5000), @ConversionPattern))
+		PRINT CONCAT('[',OBJECT_NAME(@@PROCID), ']:@LoggerName:',        CONVERT(VARCHAR(5000), @LoggerName))
+		PRINT CONCAT('[',OBJECT_NAME(@@PROCID), ']:@LogLevelName:',      CONVERT(VARCHAR(5000), @LogLevelName))
+		PRINT CONCAT('[',OBJECT_NAME(@@PROCID), ']:@Message:',           CONVERT(VARCHAR(5000), @Message))
+	END
+
+	SET @FormattedMessage = @ConversionPattern	
+	IF (@Debug = 1)PRINT CONCAT('[',OBJECT_NAME(@@PROCID), ']:@FormattedMessage:', CONVERT(VARCHAR(5000), @FormattedMessage))
 	SET @FormattedMessage = REPLACE(@FormattedMessage COLLATE Latin1_General_CS_AS, '%c ', @LoggerName)
 	SET @FormattedMessage = REPLACE(@FormattedMessage, '%d ', LoggerBase.Layout_GetDate())
 	SET @FormattedMessage = REPLACE(@FormattedMessage, '%date', LoggerBase.Layout_GetDate())
@@ -55,4 +55,5 @@ AS
 	SET @FormattedMessage = REPLACE(@FormattedMessage, '%username', LoggerBase.Layout_LoginUser())
 	SET @FormattedMessage = REPLACE(@FormattedMessage, '%utcdate', SYSUTCDATETIME())
 	SET @FormattedMessage = REPLACE(@FormattedMessage, '%w ', LoggerBase.Layout_LoginUser())
+	IF (@Debug = 1)PRINT CONCAT('[',OBJECT_NAME(@@PROCID), ']:@FormattedMessage:', CONVERT(VARCHAR(5000), @FormattedMessage))
 

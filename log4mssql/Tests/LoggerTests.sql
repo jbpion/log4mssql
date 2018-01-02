@@ -8,9 +8,10 @@ GO
 CREATE PROCEDURE loggerbasetests.[SetUp]
 AS
 BEGIN
-	PRINT 'Setup not implemented'
+	--PRINT 'Setup not implemented'
 	--EXEC tSQLt.FakeTable 'dbo.Table'
 	--INSERT INTO dbo.Table VALUES('');
+	PRINT ''
 END;
 GO
 
@@ -125,6 +126,81 @@ BEGIN
 END;
 GO
 
-EXEC tSQLt.Run 'loggerbasetests'
+CREATE PROCEDURE loggerbasetests.[Test Assert We Can Return The Configuration Pattern From A ConfigurationProperties Table]
+AS
+BEGIN
+	
+	DECLARE @ConfigurationProperties LoggerBase.ConfigurationProperties
+
+	INSERT INTO @ConfigurationProperties
+	(
+	 ObjectID                     
+	,ParentObjectID               
+	,MaterializedPathByID         
+	,MaterializedPathByElementName
+	,ElementName                  
+	,ElementValue
+	)
+	VALUES
+	 (1, NULL, '1',       'layout',                              'layout',              ''                                                          )
+	,(2, 1,    '1.2',     'layout.type',                         'type',                'LoggerBase.Layout_PatternLayout'                           )
+	,(3, 2,    '1.2.3',   'layout.type.conversionPattern',       'conversionPattern',   ''                                                          )
+	,(4, 3,    '1.2.3.4', 'layout.type.conversionPattern.value', 'value',               '%timestamp [%thread] %level %LoggerBase - %message%newline')
+	
+	DECLARE @Expected VARCHAR(1000) = '%timestamp [%thread] %level %LoggerBase - %message%newline'
+	DECLARE @Actual   VARCHAR(1000)
+	
+	SELECT @Actual = LoggerBase.Layout_GetConversionPatternFromConfigProperties(@ConfigurationProperties)
+	
+	EXEC tSQLt.AssertEquals @Expected = @Expected, @Actual = @Actual
+END;
+GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert We Get The Layout Pattern]
+AS
+BEGIN
+	
+	DECLARE @ConfigurationProperties LoggerBase.ConfigurationProperties
+
+	INSERT INTO @ConfigurationProperties
+	(
+	 ObjectID                     
+	,ParentObjectID               
+	,MaterializedPathByID         
+	,MaterializedPathByElementName
+	,ElementName                  
+	,ElementValue
+	)
+	VALUES
+	 (1, NULL, '1',       'layout',                              'layout',              ''                                                          )
+	,(2, 1,    '1.2',     'layout.type',                         'type',                'LoggerBase.Layout_PatternLayout'                           )
+	,(3, 2,    '1.2.3',   'layout.type.conversionPattern',       'conversionPattern',   ''                                                          )
+	,(4, 3,    '1.2.3.4', 'layout.type.conversionPattern.value', 'value',               '%level - %message'                     )
+
+	DECLARE 
+	  @LoggerName   VARCHAR(500) = 'TestLogger'
+	, @LogLevelName VARCHAR(500) = 'DEBUG'
+	, @Message      VARCHAR(MAX) = 'A test message'
+	, @Debug        BIT=0
+	, @FormattedMessage VARCHAR(MAX)
+	
+	DECLARE @Expected VARCHAR(1000) = 'DEBUG - A test message'
+	DECLARE @Actual   VARCHAR(1000)
+	
+	EXEC LoggerBase.Layout_PatternLayout @LoggerName = @LoggerName
+	,@LogLevelName = @LogLevelName
+	,@Message = @Message
+	,@Config = @ConfigurationProperties
+	,@Debug = @Debug
+	,@FormattedMessage = @FormattedMessage OUTPUT
+
+	SET @Actual = @FormattedMessage
+	
+	EXEC tSQLt.AssertEquals @Expected = @Expected, @Actual = @Actual
+END;
+GO
+
+--EXEC tSQLt.Run 'loggerbasetests'
+EXEC tSQLt.Run 'loggerbasetests.[Test Assert We Get The Layout Pattern]'
 GO
 

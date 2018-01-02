@@ -36,7 +36,7 @@ CREATE PROCEDURE LoggerBase.Layout_FormatMessage
     , @LoggerName       VARCHAR(500)
 	, @LogLevelName     VARCHAR(500)
 	, @Message          VARCHAR(MAX)
-	, @LayoutConfig     XML
+	, @LayoutConfig     LoggerBase.ConfigurationProperties READONLY
 	, @Debug            BIT
 	, @FormattedMessage VARCHAR(MAX) OUTPUT
 )
