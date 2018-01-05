@@ -77,6 +77,11 @@ EXEC LoggerBase.Appender_LocalDatabaseAppender @LoggerName = 'TestLogger', @LogL
 , @Debug = 1
 SELECT * FROM LoggerBase.TestLog
 
+--Check for extra quotes.
+EXEC LoggerBase.Appender_LocalDatabaseAppender @LoggerName = 'TestLogger', @LogLevelName = 'DEBUG', @Message = 'This ''is a test.', @Config = @Config
+, @Debug = 1
+SELECT * FROM LoggerBase.TestLog
+
 **********************************************************************************************/
 
 CREATE PROCEDURE LoggerBase.Appender_LocalDatabaseAppender
@@ -158,11 +163,11 @@ AS
 
 	--Take the parameters and construct the parameters definition and parameters/value list
 	DECLARE @ParameterDefinition NVARCHAR(MAX)
-	SELECT @ParameterDefinition = COALESCE(@ParameterDefinition+',' ,'') + CONCAT(ParameterName, ' ' , dbType, IIF(size IS NOT NULL, CONCAT('(', size, ')'), ''), ' = ''', ParameterValue, '''')
+	SELECT @ParameterDefinition = COALESCE(@ParameterDefinition+',' ,'') + CONCAT(ParameterName, ' ' , dbType, IIF(size IS NOT NULL, CONCAT('(', size, ')'), ''), ' = ''', REPLACE(ParameterValue,'''',''''''), '''')
 	FROM #Parameters
 
-IF (@Debug = 1) PRINT CONCAT(OBJECT_NAME(@@PROCID), ':@SQL:', @CommandText)
+	IF (@Debug = 1) PRINT CONCAT(OBJECT_NAME(@@PROCID), ':@SQL:', @CommandText)
 
-SELECT @SQL = CONCAT('DECLARE ', @ParameterDefinition, '; ', @CommandText)
-IF (@Debug = 1) PRINT CONCAT(OBJECT_NAME(@@PROCID), ':@SQL:', @SQL)
-EXEC (@SQL)
+	SELECT @SQL = CONCAT('DECLARE ', @ParameterDefinition, '; ', @CommandText)
+	IF (@Debug = 1) PRINT CONCAT(OBJECT_NAME(@@PROCID), ':@SQL:', @SQL)
+	EXEC (@SQL)
