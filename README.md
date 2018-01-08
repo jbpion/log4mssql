@@ -188,3 +188,102 @@ AuditMessagesID|Date      |Thread|Level|Logger  |Message                        
 ---------------|----------|------|-----|--------|------------------------------------|---------
 1              |2018-01-08|    51|INFO |DBLogger|My simple message stored in a table.|	
 
+### Advanced Messages
+It is possible to get more customization by using built-in XML handling in SQL Server.
+
+In this case we format our message as XML and pull it apart using computed columns and user-defined functions in our destination table. You will have to create a user-defined function to process the XML in computed columns.
+
+Here's an example:
+````
+DECLARE @Config XML = 
+'<log4mssql>
+ <appender name="DBAppenderWithXMLMessage" type="LoggerBase.Appender_LocalDatabaseAppender">
+    <commandText value="INSERT INTO LoggerBase.XMLMessages ([Date],[Thread],[Level],[Logger],[XMLMessage],[Exception]) VALUES (@log_date, @thread, @log_level, @logger, @message, @exception)" />
+    <parameter>
+        <parameterName value="@log_date" />
+        <dbType value="DateTime" />
+        <layout type="LoggerBase.Layout_PatternLayout">
+            <conversionPattern value="%date" />
+        </layout>
+    </parameter>
+    <parameter>
+        <parameterName value="@thread" />
+        <dbType value="VarChar" />
+	   <size value="255" />
+        <layout type="LoggerBase.Layout_PatternLayout">
+            <conversionPattern value="%thread" />
+        </layout>
+    </parameter>
+    <parameter>
+        <parameterName value="@log_level" />
+        <dbType value="VarChar" />
+	   <size value="50" />
+        <layout type="LoggerBase.Layout_PatternLayout">
+            <conversionPattern value="%level" />
+        </layout>
+    </parameter>
+    <parameter>
+        <parameterName value="@logger" />
+        <dbType value="VarChar" />
+	   <size value="255" />
+        <layout type="LoggerBase.Layout_PatternLayout">
+            <conversionPattern value="%logger" />
+        </layout>
+    </parameter>
+    <parameter>
+        <parameterName value="@message" />
+        <dbType value="NVarChar" />
+	   <size value="4000" />
+        <layout type="LoggerBase.Layout_PatternLayout">
+            <conversionPattern value="%message" />
+        </layout>
+    </parameter>
+    <parameter>
+        <parameterName value="@exception" />
+        <dbType value="VarChar" />
+	   <size value="2000" />
+        <layout type="LoggerBase.Layout_PatternLayout" />
+    </parameter>
+</appender>	
+    <root>
+        <level value="INFO" />
+        <appender-ref ref="DBAppenderWithXMLMessage" />
+    </root>
+</log4mssql>'
+
+IF OBJECT_ID('dbo.GetTheMessage') IS NULL
+EXEC('
+CREATE FUNCTION dbo.GetTheMessage(@XMLMessage XML)
+RETURNS VARCHAR(250)
+AS
+BEGIN
+	RETURN @XMLMessage.value(''(/package/message)[1]'', ''VARCHAR(250)'')
+END
+')
+
+IF OBJECT_ID('LoggerBase.XMLMessages') IS NOT NULL DROP TABLE LoggerBase.XMLMessages
+CREATE TABLE LoggerBase.XMLMessages
+(
+	[AuditMessagesID] [bigint] IDENTITY(1,1) NOT NULL,
+	[Date] DATE
+	,[Thread] INT
+	,[Level] VARCHAR(500)
+	,[Logger] VARCHAR(500)
+	,[XMLMessage] XML
+	,[Message] AS dbo.GetTheMessage(XMLMessage)
+	,[Exception] VARCHAR(MAX)
+)
+
+DECLARE @XMLMessage NVARCHAR(MAX) = '   <package name="Ingest_AperiaData">
+	<task name="  Log Package Start"/>
+	<message>Package Started - Parm-PCIVersion: 3.1</message>
+  </package>'
+
+/*Store the configuration in the current session context*/
+EXEC LoggerBase.Session_Config_Set @Config = @Config
+
+/*Call the "info method" and print out our message as defined in the configuration*/
+EXEC Logger.Info @LoggerName = 'DBLogger', @Message = @XMLMessage
+
+SELECT * FROM LoggerBase.XMLMessages
+````
