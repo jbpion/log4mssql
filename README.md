@@ -101,7 +101,90 @@ You should get output that looks similar to:
 ````
 ****TEST RESULT****2018-01-08 15:36:10.6304547 [51] INFO ConsoleLogger - Console appender test
 ````
+## Local Database Appender
+This appender writes to a table in the current (local) database. Any operations are within the parent transaction context meaning that rollbacks could cause write to logging tables to also roll back.
 
+This appender is based on the log4net database appender. You define the insert statement and replacement values.
+````
+DECLARE @Config XML = 
+'<log4mssql>
+	<appender name="LocalDBAppender" type="LoggerBase.Appender_LocalDatabaseAppender">
+		<commandText value="INSERT INTO LoggerBase.SimpleMessages ([Date],[Thread],[Level],[Logger],[Message],[Exception]) VALUES (@log_date, @thread, @log_level, @logger, @message, @exception)" />
+		<parameter>
+			<parameterName value="@log_date" />
+			<dbType value="DateTime" />
+			<layout type="LoggerBase.Layout_PatternLayout">
+				<conversionPattern value="%date" />
+			</layout>
+		</parameter>
+		<parameter>
+			<parameterName value="@thread" />
+			<dbType value="VarChar" />
+		   <size value="255" />
+			<layout type="LoggerBase.Layout_PatternLayout">
+				<conversionPattern value="%thread" />
+			</layout>
+		</parameter>
+		<parameter>
+			<parameterName value="@log_level" />
+			<dbType value="VarChar" />
+		   <size value="50" />
+			<layout type="LoggerBase.Layout_PatternLayout">
+				<conversionPattern value="%level" />
+			</layout>
+		</parameter>
+		<parameter>
+			<parameterName value="@logger" />
+			<dbType value="VarChar" />
+		   <size value="255" />
+			<layout type="LoggerBase.Layout_PatternLayout">
+				<conversionPattern value="%logger" />
+			</layout>
+		</parameter>
+		<parameter>
+			<parameterName value="@message" />
+			<dbType value="NVarChar" />
+		   <size value="4000" />
+			<layout type="LoggerBase.Layout_PatternLayout">
+				<conversionPattern value="%message" />
+			</layout>
+		</parameter>
+		<parameter>
+			<parameterName value="@exception" />
+			<dbType value="VarChar" />
+		   <size value="2000" />
+			<layout type="LoggerBase.Layout_PatternLayout" />
+		</parameter>
+	</appender>
+    <root>
+        <level value="INFO" />
+        <appender-ref ref="LocalDBAppender" />
+    </root>
+</log4mssql>'
 
+IF OBJECT_ID('LoggerBase.SimpleMessages') IS NOT NULL DROP TABLE LoggerBase.SimpleMessages
+CREATE TABLE LoggerBase.SimpleMessages
+(
+	[AuditMessagesID] [bigint] IDENTITY(1,1) NOT NULL,
+	[Date] DATE
+	,[Thread] INT
+	,[Level] VARCHAR(500)
+	,[Logger] VARCHAR(500)
+	,[Message] VARCHAR(MAX)
+	,[Exception] VARCHAR(MAX)
+)
 
+/*Store the configuration in the current session context*/
+EXEC LoggerBase.Session_Config_Set @Config = @Config
+
+/*Call the "info method" and print out our message as defined in the configuration*/
+EXEC Logger.Info @LoggerName = 'DBLogger', @Message = 'My simple message stored in a table.'
+
+SELECT * FROM LoggerBase.SimpleMessages
+````
+You should get output like:
+
+AuditMessagesID|Date      |Thread|Level|Logger  |Message                             |Exception
+---------------|----------|------|-----|--------|------------------------------------|---------
+1              |2018-01-08|    51|INFO |DBLogger|My simple message stored in a table.|	
 
