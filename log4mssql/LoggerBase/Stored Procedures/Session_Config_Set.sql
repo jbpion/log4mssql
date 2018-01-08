@@ -5,13 +5,7 @@
 
     Date:           07/12/2017
     Author:         Jerome Pion
-    Description:    Returns the lowest-level config given the current state. 
-					The order of preference is:
-					*Passed in config XML
-					*Saved config name
-					*Session config
-					*Saved default config
-					*Hard-coded config
+    Description:    Sets the config for the current session.
 
     --TEST
 
@@ -19,8 +13,7 @@
 
 CREATE PROCEDURE LoggerBase.Session_Config_Set
 (
-	 @Override XML = NULL
-    ,@Config XML OUTPUT
+	 @Config XML
 	,@Debug  BIT = 0
 )
 
@@ -43,7 +36,7 @@ AS
 		(SessionContextID, Config, OverrideLogLevelName, ExpirationDatetimeUTC)
 		VALUES (@SessionID, @Config, NULL, DATEADD(DAY, 1, GETUTCDATE()))
 		
-		EXEC LoggerBase.Session_Config_Set @SessionID
+		EXEC LoggerBase.Session_ContextID_Set @SessionID
 
 	END
 
