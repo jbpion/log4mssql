@@ -1,4 +1,6 @@
-﻿
+﻿IF OBJECT_ID('LoggerBase.Config_Appenders_FilteredByLevel') IS NOT NULL DROP PROCEDURE LoggerBase.Config_Appenders_FilteredByLevel
+GO
+
 /*********************************************************************************************
 
     PROCEDURE LoggerBase.Config_Appenders_FilteredByLevel
@@ -50,4 +52,15 @@ AS
 	--Check if we have an override in the session that changes the root-appender defined logging level.
 	INNER JOIN LoggerBase.Core_Level                    LL ON COALESCE(LoggerBase.Session_Level_Get(),  R.LevelValue)  = LL.LogLevelName
 	AND LL.LogLevelValue <= (SELECT LogLevelValue FROM LoggerBase.Core_Level WHERE LogLevelName = @RequestedLogLevelName)
+	--CROSS APPLY LoggerBase.Appender_Filter_RangeFile_Apply(@Config, @RequestedLogLevelName) AS FilteredByRange
+	--WHERE 1=1
+	-- LoggerBase.Core_Level_ConvertNameToValue(@RequestedLogLevelName, 'MIN')
+	--BETWEEN 
+	--LoggerBase.Core_Level_ConvertNameToValue(t.appender.value('(./filter/levelMin/@value)[1]', 'VARCHAR(500)'), 'MIN') AND
+	--LoggerBase.Core_Level_ConvertNameToValue(t.appender.value('(./filter/levelMax/@value)[1]', 'VARCHAR(500)'), 'MAX') 
+	WHERE 1=1
+	AND AppenderName IN
+	(
+		SELECT AppenderName FROM LoggerBase.Appender_Filter_RangeFile_Apply(@Config, @RequestedLogLevelName) AS FilteredByRange
+	)
 	

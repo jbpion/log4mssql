@@ -8,7 +8,8 @@ GO
 CREATE PROCEDURE loggerbasetests.[SetUp]
 AS
 BEGIN
-	PRINT 'Setup not implemented'
+	--PRINT 'Setup not implemented'
+	PRINT ''
 	--EXEC tSQLt.FakeTable 'dbo.Table'
 	--INSERT INTO dbo.Table VALUES('');
 END;
@@ -124,6 +125,66 @@ BEGIN
 	,@errorMessage = @errorMessage OUTPUT
 END;
 GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert Procedure Appender_Filter_LevelRange Returns Defaults When Null Passed In]
+AS
+BEGIN
+
+	DECLARE @ExpectedMinLogLevelValue INT = -2147483647
+	DECLARE @ExpectedMaxLogLevelValue INT = 2147483647
+
+	DECLARE @ActualMinLogLevelValue INT 
+	DECLARE @ActualMaxLogLevelValue INT 
+
+	SELECT @ActualMinLogLevelValue = MinLogLevelValue, @ActualMaxLogLevelValue = MaxLogLevelValue
+	FROM LoggerBase.Appender_Filter_LevelRange(NULL, NULL)
+
+	EXEC tSQLt.AssertEquals @Expected = @ExpectedMinLogLevelValue, @Actual = @ActualMinLogLevelValue
+	EXEC tSQLt.AssertEquals @Expected = @ExpectedMaxLogLevelValue, @Actual = @ActualMaxLogLevelValue
+
+END;
+GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert Procedure Appender_Filter_LevelRange Returns Correct Lookups]
+AS
+BEGIN
+
+	DECLARE @ExpectedMinLogLevelValue INT = 30000
+	DECLARE @ExpectedMaxLogLevelValue INT = 60000
+
+	DECLARE @ActualMinLogLevelValue INT 
+	DECLARE @ActualMaxLogLevelValue INT 
+
+	SELECT @ActualMinLogLevelValue = MinLogLevelValue, @ActualMaxLogLevelValue = MaxLogLevelValue
+	FROM LoggerBase.Appender_Filter_LevelRange('DEBUG', 'WARN')
+
+	EXEC tSQLt.AssertEquals @Expected = @ExpectedMinLogLevelValue, @Actual = @ActualMinLogLevelValue
+	EXEC tSQLt.AssertEquals @Expected = @ExpectedMaxLogLevelValue, @Actual = @ActualMaxLogLevelValue
+
+END;
+GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert Procedure Appender_Filter_LevelRange_FilterAppenders Filters By Config]
+AS
+BEGIN
+
+	--DECLARE @ExpectedMinLogLevelValue INT = 30000
+	--DECLARE @ExpectedMaxLogLevelValue INT = 60000
+
+	--DECLARE @ActualMinLogLevelValue INT 
+	--DECLARE @ActualMaxLogLevelValue INT 
+	DECLARE @Config XML = ''
+	DECLARE @CurrentLoggingLevel VARCHAR(50) = 'DEBUG'
+
+	SELECT *
+	FROM LoggerBase.Appender_Filter_FilterAppenders(@Config, @CurrentLoggingLevel)
+
+	--EXEC tSQLt.AssertEquals @Expected = @ExpectedMinLogLevelValue, @Actual = @ActualMinLogLevelValue
+	--EXEC tSQLt.AssertEquals @Expected = @ExpectedMaxLogLevelValue, @Actual = @ActualMaxLogLevelValue
+
+END;
+GO
+
 
 EXEC tSQLt.Run 'loggerbasetests'
 GO
