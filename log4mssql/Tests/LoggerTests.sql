@@ -173,11 +173,92 @@ BEGIN
 
 	--DECLARE @ActualMinLogLevelValue INT 
 	--DECLARE @ActualMaxLogLevelValue INT 
-	DECLARE @Config XML = ''
+	DECLARE @Config XML = '
+<log4mssql>
+<appender name="Saved-Default-Console" type="LoggerBase.Appender_ConsoleAppender">
+	<layout type="LoggerBase.Layout_PatternLayout">
+		<conversionPattern value="%timestamp %level %logger-%message"/>
+	</layout>
+	<filter type="LoggerBase.Filter_LevelRangeFilter">
+		<levelMin value="INFO" />
+		<levelMax value="FATAL" />
+	</filter>
+</appender>
+	<root>
+		<level value="INFO"/>
+		<appender-ref ref="Saved-Default-Console"/>
+	</root>
+</log4mssql>
+'
 	DECLARE @CurrentLoggingLevel VARCHAR(50) = 'DEBUG'
 
-	SELECT *
-	FROM LoggerBase.Appender_Filter_FilterAppenders(@Config, @CurrentLoggingLevel)
+	DECLARE @Expected VARCHAR(500) = NULL
+	DECLARE @Actual   VARCHAR(500)
+
+	SELECT @Actual = AppenderName
+	FROM LoggerBase.Appender_Filter_RangeFile_Apply(@Config, @CurrentLoggingLevel)
+
+	EXEC tSQLt.AssertEquals @Expected = @Expected, @Actual = @Actual
+
+	SET @CurrentLoggingLevel = 'INFO'
+	SET @Expected = 'Saved-Default-Console'
+
+	SELECT @Actual = AppenderName
+	FROM LoggerBase.Appender_Filter_RangeFile_Apply(@Config, @CurrentLoggingLevel)
+
+	EXEC tSQLt.AssertEquals @Expected = @Expected, @Actual = @Actual
+
+	--EXEC tSQLt.AssertEquals @Expected = @ExpectedMinLogLevelValue, @Actual = @ActualMinLogLevelValue
+	--EXEC tSQLt.AssertEquals @Expected = @ExpectedMaxLogLevelValue, @Actual = @ActualMaxLogLevelValue
+
+END;
+GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert Function Config_Appenders_Get Returns A Table Of Appenders, Types, and Configs]
+AS
+BEGIN
+
+	DECLARE @Config XML = 
+	'<log4mssql>
+		<appender name="LocalDBAppender" type="LoggerBase.Appender_LocalDatabaseAppender">
+			<commandText value="INSERT SQL HERE" />
+			<parameter>
+				<parameterName value="@log_date" />
+				<dbType value="DateTime" />
+				<layout type="LoggerBase.Layout_PatternLayout">
+					<conversionPattern value="%date" />
+				</layout>
+			</parameter>
+		</appender>
+		<appender name="ConsoleAppender" type="LoggerBase.Appender_ConsoleAppender">
+			<layout type="LoggerBase.Layout_PatternLayout">
+				<conversionPattern value="message" />
+			</layout>
+        </appender>
+		<root>
+			<level value="INFO" />
+			<appender-ref ref="LocalDBAppender" />
+			<appender-ref ref="ConsoleAppender" />
+		</root>
+	</log4mssql>'
+	
+	SELECT RowID = 1,AppenderName = 'ConsoleAppender', AppenderType = 'LoggerBase.Appender_ConsoleAppender', AppenderConfig = '<appender name="ConsoleAppender" type="LoggerBase.Appender_ConsoleAppender"><layout type="LoggerBase.Layout_PatternLayout"><conversionPattern value="message"/></layout></appender>'
+		INTO #Expected
+		UNION ALL
+	SELECT RowID = 2,AppenderName = 'LocalDBAppender', AppenderType = 'LoggerBase.Appender_LocalDatabaseAppender', AppenderConfig = '<appender name="LocalDBAppender" type="LoggerBase.Appender_LocalDatabaseAppender"><commandText value="INSERT SQL HERE"/><parameter><parameterName value="@log_date"/><dbType value="DateTime"/><layout type="LoggerBase.Layout_PatternLayout"><conversionPattern value="%date"/></layout></parameter></appender>'
+
+	SELECT 
+	RowID
+	,AppenderName
+	,AppenderType
+	,CAST(AppenderConfig AS VARCHAR(8000)) AS AppenderConfig
+	INTO #Actual
+	FROM LoggerBase.Config_Appenders_Get(@Config)
+
+	--SELECT * FROM #Expected
+	--SELECT * FROM #Actual
+
+	EXEC tSQLt.AssertEqualsTable @Expected = '#Expected', @Actual = '#Actual'
 
 	--EXEC tSQLt.AssertEquals @Expected = @ExpectedMinLogLevelValue, @Actual = @ActualMinLogLevelValue
 	--EXEC tSQLt.AssertEquals @Expected = @ExpectedMaxLogLevelValue, @Actual = @ActualMaxLogLevelValue
