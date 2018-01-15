@@ -15,6 +15,14 @@ BEGIN
 END;
 GO
 
+CREATE FUNCTION loggerbasetests.Session_ContextID_Get()
+RETURNS VARBINARY(128)
+AS
+BEGIN
+	RETURN CAST('AC' AS VARBINARY(128))
+END;
+GO
+
 --Assert: Create tests to compare the expected and actual results of the object under test.
 CREATE PROCEDURE loggerbasetests.[Test Assert Appender_LocalDatabaseAppender Saves Log Message]
 AS
@@ -98,13 +106,6 @@ EXEC tSQLt.AssertEqualsTable @Expected = '#Expected', @Actual = '#Actual'
 
 END;
 GO
-
---CREATE PROCEDURE loggerbasetests.[Test Assert Function Appender_File_WriteTextFile Writes A New File]
---AS
---BEGIN
---	SELECT [LoggerBase].[Appender_File_WriteTextFile]('Just a test message', 'C:\Temp\FileAppenderTest.txt', 0)
---END;
---GO
 
 CREATE PROCEDURE loggerbasetests.[Test Assert Procedure Appender_File_Private_WriteTextFile Writes A New File]
 AS
@@ -291,7 +292,27 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE loggerbasetests.[Test Assert We Can Get The Current Session (ContextID) Config XML]
+AS
+BEGIN
+
+	EXEC tSQLt.FakeTable @TableName = 'LoggerBase.Config_SessionContext'
+	INSERT INTO LoggerBase.Config_SessionContext(SessionContextID, Config)
+	VALUES 
+	 (CAST('AB' AS VARBINARY(128)), '<log4mssql>TEST-AB</log4mssql>')
+	,(CAST('AC' AS VARBINARY(128)), '<log4mssql>TEST-AC</log4mssql>')
+
+	EXEC tSQLt.FakeFunction @FunctionName = 'LoggerBase.Session_ContextID_Get', @FakeFunctionName = 'loggerbasetests.Session_ContextID_Get'
+
+	DECLARE @Expected VARCHAR(1000) = '<log4mssql>TEST-AC</log4mssql>'
+	DECLARE @Actual   VARCHAR(1000) = (SELECT CONVERT(VARCHAR(1000), LoggerBase.Config_RetrieveFromSession()))
+	
+	EXEC tSQLt.AssertEquals @Expected = @Expected, @Actual = @Actual
+
+END;
+GO
 
 EXEC tSQLt.Run 'loggerbasetests'
+--EXEC tSQLt.Run 'loggerbasetests.[Test Assert We Can Get The Current Session (ContextID) Config XML]'
 GO
 
