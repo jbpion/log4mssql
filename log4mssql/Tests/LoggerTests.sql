@@ -434,7 +434,24 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE loggerbasetests.[Test Assert We Can Get Current Session Context Level]
+AS
+BEGIN
+
+	EXEC tSQLt.FakeFunction @FunctionName = 'LoggerBase.Session_ContextID_Get', @FakeFunctionName = 'loggerbasetests.Session_ContextID_Get'
+	EXEC tSQLt.FakeTable @TableName = 'LoggerBase.Config_SessionContext'
+	INSERT INTO LoggerBase.Config_SessionContext
+	VALUES(CAST('AC' AS VARBINARY(128)), NULL, 'TEST', '2070-01-01')
+
+	DECLARE @Expected VARCHAR(500) = 'TEST'
+	DECLARE @Actual   VARCHAR(500) = (SELECT LoggerBase.Core_Level_RetrieveFromSession())
+
+	EXEC tSQLt.AssertEquals @Expected = @Expected, @Actual = @Actual
+
+END;
+GO
+
 EXEC tSQLt.Run 'loggerbasetests'
---EXEC tSQLt.Run 'loggerbasetests.[Test Assert We Can Get The Min Int Level Of A When Nulls Passed In]'
+--EXEC tSQLt.Run 'loggerbasetests.[Test Assert We Can Get Current Session Context Level]'
 GO
 
