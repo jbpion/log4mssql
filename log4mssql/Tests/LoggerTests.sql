@@ -5,15 +5,14 @@ EXEC tSQLt.NewTestClass 'loggerbasetests';
 GO
 
 --Assemble - Define and populate fake tables. Create result tracking tables.
-CREATE PROCEDURE loggerbasetests.[SetUp]
-AS
-BEGIN
-	--PRINT 'Setup not implemented'
-	PRINT ''
-	--EXEC tSQLt.FakeTable 'dbo.Table'
-	--INSERT INTO dbo.Table VALUES('');
-END;
-GO
+--CREATE PROCEDURE loggerbasetests.[SetUp]
+--AS
+--BEGIN
+--	PRINT 'Setup not implemented'
+--	EXEC tSQLt.FakeTable 'dbo.Table'
+--	INSERT INTO dbo.Table VALUES('');
+--END;
+--GO
 
 CREATE FUNCTION loggerbasetests.Session_ContextID_Get()
 RETURNS VARBINARY(128)
@@ -451,7 +450,88 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE loggerbasetests.[Test Assert We Can Get The ConversionPattern From The Layout Configuration]
+AS
+BEGIN
+
+	DECLARE @Config XML = '<layout type="LoggerBase.Layout_PatternLayout">
+	<conversionPattern value="ConversionPatternToReturn"/>
+	</layout>'
+
+	DECLARE @Expected VARCHAR(1000) = 'ConversionPatternToReturn'
+	DECLARE @Actual   VARCHAR(1000) = (SELECT LoggerBase.Layout_GetConversionPatternFromConfig(@Config))
+
+	EXEC tSQLt.AssertEquals @Expected = @Expected, @Actual = @Actual
+
+END;
+GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert We Can Get The Date From The Layout_GetDate Function]
+AS
+BEGIN
+
+	DECLARE @Expected DATE = CAST(GETDATE() AS DATE)
+	DECLARE @Actual   DATE = LoggerBase.Layout_GetDate()
+
+	EXEC tSQLt.AssertEquals @Expected = @Expected, @Actual = @Actual
+
+END;
+GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert We Can Get The Current Session (ContextID) Override Level]
+AS
+BEGIN
+
+	EXEC tSQLt.FakeTable @TableName = 'LoggerBase.Config_SessionContext'
+	INSERT INTO LoggerBase.Config_SessionContext(SessionContextID, OverrideLogLevelName)
+	VALUES 
+	 (CAST('AB' AS VARBINARY(128)), 'TESTLEVEL-AB')
+	,(CAST('AC' AS VARBINARY(128)), 'TESTLEVEL-AC')
+
+	EXEC tSQLt.FakeFunction @FunctionName = 'LoggerBase.Session_ContextID_Get', @FakeFunctionName = 'loggerbasetests.Session_ContextID_Get'
+
+	DECLARE @Expected VARCHAR(500) = 'TESTLEVEL-AC'
+	DECLARE @Actual   VARCHAR(500) = (SELECT LoggerBase.Session_Level_Get())
+	
+	EXEC tSQLt.AssertEquals @Expected = @Expected, @Actual = @Actual
+
+END;
+GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert Console Appender Prints Raw Message]
+AS
+BEGIN
+
+	DECLARE @SQLToTest VARCHAR(2000) = '
+	DECLARE @LoggerName   VARCHAR(500) = ''TestAppenderLoggerBase''
+	DECLARE @LogLevelName VARCHAR(500) = ''DEBUG''
+	DECLARE @Message      VARCHAR(MAX) = ''Appender test message!''
+	DECLARE @Config       XML          = ''
+	<appender name="A1" type="LoggerBase.Appender_ConsoleAppender">
+		<layout type="LoggerBase.Layout_PatternLayout">
+			<conversionPattern value="%message"/>
+		</layout>
+	</appender>''
+
+	EXEC LoggerBase.Appender_ConsoleAppender 
+	  @LoggerName   = @LoggerName
+	, @LogLevelName = @LogLevelName 
+	, @Message      = @Message
+	, @Config       = @Config
+	, @Debug        = 0
+	'
+
+	EXEC tSQLt.CaptureOutput @command = @SQLToTest
+
+	DECLARE @Expected VARCHAR(1000) = 'Appender test message!
+'
+	DECLARE @Actual   VARCHAR(1000) = (SELECT TOP(1) OutputText FROM tSQLt.CaptureOutputLog)
+	EXEC tSQLt.AssertEquals @Expected = @Expected, @Actual = @Actual
+
+END;
+GO
+
 EXEC tSQLt.Run 'loggerbasetests'
---EXEC tSQLt.Run 'loggerbasetests.[Test Assert We Can Get Current Session Context Level]'
+--EXEC tSQLt.Run 'loggerbasetests.[Test Assert Console Appender Prints Raw Message]'
 GO
 
