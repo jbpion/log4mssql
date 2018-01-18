@@ -9,8 +9,19 @@ GO
 --AS
 --BEGIN
 --	PRINT 'Setup not implemented'
---	EXEC tSQLt.FakeTable 'dbo.Table'
---	INSERT INTO dbo.Table VALUES('');
+--	--EXEC tSQLt.FakeTable 'dbo.Table'
+--	--INSERT INTO dbo.Table VALUES('');
+
+--	IF OBJECT_ID('LoggerBase.TestLog') IS NOT NULL DROP TABLE LoggerBase.TestLog
+--	CREATE TABLE LoggerBase.TestLog
+--	(
+--		[Date] DATE
+--		,[Thread] INT
+--		,[Level] VARCHAR(500)
+--		,[Logger] VARCHAR(500)
+--		,[Message] VARCHAR(MAX)
+--		,[Exception] VARCHAR(MAX)
+--	)
 --END;
 --GO
 
@@ -531,7 +542,190 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE loggerbasetests.[Test Assert Config_Appenders_FilteredByLevel Returns No Appenders When Request Level Is Below Appender Level]
+AS
+BEGIN
+
+	--Set the level to "INFO" and above.
+	DECLARE @InfoConfig XML = '
+	<log4mssql>
+		<appender name="Saved-Default-Console" type="LoggerBase.Appender_ConsoleAppender">
+			<layout type="LoggerBase.Layout_PatternLayout">
+				<conversionPattern value="%timestamp %level %logger-%message"/>
+			</layout>
+		</appender>
+		<root>
+			<level value="INFO"/>
+			<appender-ref ref="Saved-Default-Console"/>
+		</root>
+	</log4mssql>'
+
+	DECLARE @RequestedLogLevelName VARCHAR(500) = 'DEBUG'
+
+	CREATE TABLE #Result
+	(
+		 RowID INT
+		,AppenderType VARCHAR(500)
+		,AppenderConfig XML
+	)
+
+	IF OBJECT_ID('TempDB..#Expected') IS NOT NULL DROP TABLE #Expected
+	SELECT 
+	 RowID
+	,AppenderType
+	,CONVERT(VARCHAR(1000), AppenderConfig) AS AppenderConfig
+	INTO #Expected
+	FROM #Result
+
+	--Request a debug output. The appender should not fire.
+	INSERT INTO #Result
+	EXEC LoggerBase.Config_Appenders_FilteredByLevel @Config = @InfoConfig, @RequestedLogLevelName = @RequestedLogLevelName, @Debug = 0
+
+	SELECT 
+	 RowID
+	,AppenderType
+	,CONVERT(VARCHAR(1000), AppenderConfig) AS AppenderConfig
+	INTO #Actual
+	FROM #Result
+
+	EXEC tSQLt.AssertEqualsTable @Expected = '#Expected', @Actual = '#Actual'
+
+	--IF OBJECT_ID('TempDB..#Expected') IS NOT NULL DROP TABLE #Expected
+
+	--SELECT 1 AS RowID
+	--,'LoggerBase.Appender_ConsoleAppender' AS AppenderType
+	--,'<appender name="Saved-Default-Console" type="LoggerBase.Appender_ConsoleAppender">
+	--		<layout type="LoggerBase.Layout_PatternLayout">
+	--			<conversionPattern value="%timestamp %level %logger-%message"/>
+	--		</layout>
+	--	</appender>' AS AppenderConfig
+	--INTO #Expected
+
+	--SET @RequestedLogLevelName = 'INFO'
+
+	--EXEC LoggerBase.Config_Appenders_FilteredByLevel @Config = @InfoConfig, @RequestedLogLevelName = @RequestedLogLevelName, @Debug = 0
+
+	----EXEC tSQLt.AssertEquals @Expected = @Expected, @Actual = @Actual
+
+END;
+GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert Config_Appenders_FilteredByLevel Returns Appenders When Request Level Is At Appender Level]
+AS
+BEGIN
+
+	--Set the level to "INFO" and above.
+	DECLARE @InfoConfig XML = '
+	<log4mssql>
+		<appender name="Saved-Default-Console" type="LoggerBase.Appender_ConsoleAppender">
+			<layout type="LoggerBase.Layout_PatternLayout">
+				<conversionPattern value="%timestamp %level %logger-%message"/>
+			</layout>
+		</appender>
+		<root>
+			<level value="INFO"/>
+			<appender-ref ref="Saved-Default-Console"/>
+		</root>
+	</log4mssql>'
+
+	DECLARE @RequestedLogLevelName VARCHAR(500) = 'INFO'
+
+	CREATE TABLE #Result
+	(
+		 RowID INT
+		,AppenderType VARCHAR(500)
+		,AppenderConfig XML
+	)
+
+	IF OBJECT_ID('TempDB..#Expected') IS NOT NULL DROP TABLE #Expected
+	SELECT 
+	 1 AS RowID
+	,'LoggerBase.Appender_ConsoleAppender' AS AppenderType
+	,'<appender name="Saved-Default-Console" type="LoggerBase.Appender_ConsoleAppender"><layout type="LoggerBase.Layout_PatternLayout"><conversionPattern value="%timestamp %level %logger-%message"/></layout></appender>' AS AppenderConfig
+	INTO #Expected
+
+	--Request a debug output. The appender should not fire.
+	INSERT INTO #Result
+	EXEC LoggerBase.Config_Appenders_FilteredByLevel @Config = @InfoConfig, @RequestedLogLevelName = @RequestedLogLevelName, @Debug = 0
+
+	SELECT 
+	 RowID
+	,AppenderType
+	,CONVERT(VARCHAR(1000), AppenderConfig) AS AppenderConfig
+	INTO #Actual
+	FROM #Result
+
+	EXEC tSQLt.AssertEqualsTable @Expected = '#Expected', @Actual = '#Actual'
+
+END;
+GO
+
+--CREATE PROCEDURE loggerbasetests.[Test Assert Console MSSQL Appender Saves To Table]
+--AS
+--BEGIN
+
+--DECLARE @Config XML = 
+--'<appender name="MSSQLAppender" type="LoggerBase.Appender_MSSQLDatabaseAppender">
+--	<connectionString value="data source=localhost;initial catalog=Log4MSSQLBuild;integrated security=true;" />
+--    <commandText value="INSERT INTO LoggerBase.TestLog ([Date],[Thread],[Level],[Logger],[Message],[Exception]) VALUES (@log_date, @thread, @log_level, @logger, @message, @exception)" />
+--    <parameter>
+--        <parameterName value="@log_date" />
+--        <dbType value="DateTime" />
+--        <layout type="LoggerBase.Layout_PatternLayout">
+--            <conversionPattern value="%date" />
+--        </layout>
+--    </parameter>
+--    <parameter>
+--        <parameterName value="@thread" />
+--        <dbType value="VarChar" />
+--	   <size value="255" />
+--        <layout type="LoggerBase.Layout_PatternLayout">
+--            <conversionPattern value="%thread" />
+--        </layout>
+--    </parameter>
+--    <parameter>
+--        <parameterName value="@log_level" />
+--        <dbType value="VarChar" />
+--	   <size value="50" />
+--        <layout type="LoggerBase.Layout_PatternLayout">
+--            <conversionPattern value="%level" />
+--        </layout>
+--    </parameter>
+--    <parameter>
+--        <parameterName value="@logger" />
+--        <dbType value="VarChar" />
+--	   <size value="255" />
+--        <layout type="LoggerBase.Layout_PatternLayout">
+--            <conversionPattern value="%logger" />
+--        </layout>
+--    </parameter>
+--    <parameter>
+--        <parameterName value="@message" />
+--        <dbType value="VarChar" />
+--	   <size value="4000" />
+--        <layout type="LoggerBase.Layout_PatternLayout">
+--            <conversionPattern value="%message" />
+--        </layout>
+--    </parameter>
+--    <parameter>
+--        <parameterName value="@exception" />
+--        <dbType value="VarChar" />
+--	   <size value="2000" />
+--        <layout type="LoggerBase.Layout_PatternLayout" />
+--    </parameter>
+--</appender>'
+
+
+
+--EXEC LoggerBase.Appender_MSSQLDatabaseAppender @LoggerName = 'TestLogger', @LogLevelName = 'DEBUG', @Message = 'This is a test.', @Config = @Config
+--, @Debug = 0
+
+--SELECT * FROM LoggerBase.TestLog
+
+--END;
+--GO
+
 EXEC tSQLt.Run 'loggerbasetests'
---EXEC tSQLt.Run 'loggerbasetests.[Test Assert Console Appender Prints Raw Message]'
+--EXEC tSQLt.Run 'loggerbasetests.[Test Assert Config_Appenders_FilteredByLevel Returns Appenders When Request Level Is At Appender Level]'
 GO
 
