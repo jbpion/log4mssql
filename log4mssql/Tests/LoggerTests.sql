@@ -742,6 +742,102 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE loggerbasetests.[Test Assert Session Clear Empties The Requested Session Context]
+AS
+BEGIN
+
+	EXEC tSQLt.FakeTable @TableName = 'LoggerBase.Config_SessionContext'
+	INSERT INTO LoggerBase.Config_SessionContext(SessionContextID, Config)
+	VALUES 
+	 (CAST('AB' AS VARBINARY(128)), '<log4mssql>TEST-AB</log4mssql>')
+	,(CAST('AC' AS VARBINARY(128)), '<log4mssql>TEST-AC</log4mssql>')
+
+	EXEC tSQLt.FakeFunction @FunctionName = 'LoggerBase.Session_ContextID_Get', @FakeFunctionName = 'loggerbasetests.Session_ContextID_Get'
+
+	--select * from LoggerBase.Config_SessionContext
+
+	SELECT '00004241-0000-0000-0000-000000000000' AS SessionContextID 
+	INTO #Expected
+
+	EXEC LoggerBase.Session_Clear
+
+	SELECT CONVERT(VARCHAR(200),SessionContextID) AS SessionContextID 
+	INTO #Actual
+	FROM LoggerBase.Config_SessionContext
+
+	EXEC tSQLt.AssertEqualsTable @Expected = '#Expected', @Actual = '#Actual'
+
+END;
+GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert Session_Config_Set Updates The Session When It Already Exists]
+AS
+BEGIN
+
+	EXEC tSQLt.FakeTable @TableName = 'LoggerBase.Config_SessionContext'
+	INSERT INTO LoggerBase.Config_SessionContext(SessionContextID, Config)
+	VALUES 
+	 (CAST('AB' AS VARBINARY(128)), '<log4mssql>TEST-AB</log4mssql>')
+	,(CAST('AC' AS VARBINARY(128)), '<log4mssql>TEST-AC-BEFORE</log4mssql>')
+
+	DECLARE @NewConfig VARCHAR(1000) = '<log4mssql>TEST-AC-BEFORE</log4mssql>'
+
+	EXEC tSQLt.FakeFunction @FunctionName = 'LoggerBase.Session_ContextID_Get', @FakeFunctionName = 'loggerbasetests.Session_ContextID_Get'
+
+	--Load expected table.
+	SELECT '00004241-0000-0000-0000-000000000000' AS SessionContextID
+	,CONVERT(VARCHAR(1000), '<log4mssql>TEST-AB</log4mssql>') AS Config
+	INTO #Expected
+	UNION ALL
+	SELECT '00004341-0000-0000-0000-000000000000' AS SessionContextID
+	,CONVERT(VARCHAR(1000),@NewConfig ) AS Config
+
+	--Set the current session's new configuration.
+	EXEC LoggerBase.Session_Config_Set @Config = @NewConfig
+
+	--Make sure we affected the correct rows correctly.
+	SELECT CONVERT(VARCHAR(200),SessionContextID) AS SessionContextID 
+	,CONVERT(VARCHAR(1000), Config) AS Config
+	INTO #Actual
+	FROM LoggerBase.Config_SessionContext
+
+	EXEC tSQLt.AssertEqualsTable @Expected = '#Expected', @Actual = '#Actual'
+
+END;
+GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert Session_Config_Set Creates The Session When It Does Not Already Exist]
+AS
+BEGIN
+
+	EXEC tSQLt.FakeTable @TableName = 'LoggerBase.Config_SessionContext'
+	INSERT INTO LoggerBase.Config_SessionContext(SessionContextID, Config)
+	VALUES 
+	 (CAST('AB' AS VARBINARY(128)), '<log4mssql>TEST-AB</log4mssql>')
+
+	DECLARE @NewConfig VARCHAR(1000) = '<log4mssql>TEST-AC-BEFORE</log4mssql>'
+
+	EXEC tSQLt.FakeFunction @FunctionName = 'LoggerBase.Session_ContextID_Get', @FakeFunctionName = 'loggerbasetests.Session_ContextID_Get'
+
+	--Load expected table.
+	SELECT CONVERT(VARCHAR(1000), '<log4mssql>TEST-AB</log4mssql>') AS Config
+	INTO #Expected
+	UNION ALL
+	SELECT CONVERT(VARCHAR(1000),@NewConfig ) AS Config
+
+	--Set the current session's new configuration.
+	EXEC LoggerBase.Session_Config_Set @Config = @NewConfig
+
+	--Make sure we affected the correct rows correctly.
+	SELECT CONVERT(VARCHAR(1000), Config) AS Config
+	INTO #Actual
+	FROM LoggerBase.Config_SessionContext
+
+	EXEC tSQLt.AssertEqualsTable @Expected = '#Expected', @Actual = '#Actual'
+
+END;
+GO
+
 --Setting this aside for now. The tSQLt transaction locks us out.
 --CREATE PROCEDURE loggerbasetests.[Test Assert Console MSSQL Appender Saves To Table]
 --AS
@@ -810,6 +906,6 @@ GO
 
 EXEC tSQLt.Run 'loggerbasetests'
 
---EXEC tSQLt.Run 'loggerbasetests.[Test Assert Config_Retrieve Returns Session Config When No Override And Is Null Return Hard-Coded Default]'
+--EXEC tSQLt.Run 'loggerbasetests.[Test Assert Session_Config_Set Creates The Session When It Does Not Already Exist]'
 GO
 
