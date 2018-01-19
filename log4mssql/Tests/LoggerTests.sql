@@ -838,6 +838,76 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE loggerbasetests.[Test Assert Session_Level_Set Updates The Session When It Already Exists]
+AS
+BEGIN
+
+	EXEC tSQLt.FakeTable @TableName = 'LoggerBase.Config_SessionContext'
+	INSERT INTO LoggerBase.Config_SessionContext(SessionContextID, OverrideLogLevelName)
+	VALUES 
+	 (CAST('AB' AS VARBINARY(128)), 'TEST-AB')
+	,(CAST('AC' AS VARBINARY(128)), 'TEST-AC')
+
+	DECLARE @NewLevelName VARCHAR(1000) = 'TEST-AC-AFTER'
+
+	EXEC tSQLt.FakeFunction @FunctionName = 'LoggerBase.Session_ContextID_Get', @FakeFunctionName = 'loggerbasetests.Session_ContextID_Get'
+
+	--Load expected table.
+	SELECT '00004241-0000-0000-0000-000000000000' AS SessionContextID
+	,'TEST-AB' AS OverrideLogLevelName
+	INTO #Expected
+	UNION ALL
+	SELECT '00004341-0000-0000-0000-000000000000' AS SessionContextID
+	,@NewLevelName AS OverrideLogLevelName
+
+	--Set the current session's new configuration.
+	EXEC LoggerBase.Session_Level_Set @LogLevelName = @NewLevelName
+
+	--Make sure we affected the correct rows correctly.
+	SELECT CONVERT(VARCHAR(200),SessionContextID) AS SessionContextID 
+	,OverrideLogLevelName
+	INTO #Actual
+	FROM LoggerBase.Config_SessionContext
+
+	EXEC tSQLt.AssertEqualsTable @Expected = '#Expected', @Actual = '#Actual'
+
+END;
+GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert Session_Level_Set Creates The Session When It Does Not Already Exist]
+AS
+BEGIN
+
+	EXEC tSQLt.FakeTable @TableName = 'LoggerBase.Config_SessionContext'
+	INSERT INTO LoggerBase.Config_SessionContext(SessionContextID, OverrideLogLevelName)
+	VALUES 
+	 (CAST('AB' AS VARBINARY(128)), 'TEST-AB')
+	,(CAST('AC' AS VARBINARY(128)), 'TEST-AC')
+
+	DECLARE @NewLevelName VARCHAR(1000) = 'TEST-AC-AFTER'
+
+	EXEC tSQLt.FakeFunction @FunctionName = 'LoggerBase.Session_ContextID_Get', @FakeFunctionName = 'loggerbasetests.Session_ContextID_Get'
+
+	--Load expected table.
+	SELECT 'TEST-AB' AS OverrideLogLevelName
+	INTO #Expected
+	UNION ALL
+	SELECT @NewLevelName AS OverrideLogLevelName
+
+	--Set the current session's new configuration.
+	EXEC LoggerBase.Session_Level_Set @LogLevelName = @NewLevelName
+
+	--Make sure we affected the correct rows correctly.
+	SELECT CONVERT(VARCHAR(200),SessionContextID) AS SessionContextID 
+	,OverrideLogLevelName
+	INTO #Actual
+	FROM LoggerBase.Config_SessionContext
+
+	EXEC tSQLt.AssertEqualsTable @Expected = '#Expected', @Actual = '#Actual'
+
+END;
+GO
+
 --Setting this aside for now. The tSQLt transaction locks us out.
 --CREATE PROCEDURE loggerbasetests.[Test Assert Console MSSQL Appender Saves To Table]
 --AS
@@ -906,6 +976,6 @@ GO
 
 EXEC tSQLt.Run 'loggerbasetests'
 
---EXEC tSQLt.Run 'loggerbasetests.[Test Assert Session_Config_Set Creates The Session When It Does Not Already Exist]'
+--EXEC tSQLt.Run 'loggerbasetests.[Test Assert Session_Level_Set Creates The Session When It Does Not Already Exist]'
 GO
 
