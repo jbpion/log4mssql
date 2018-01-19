@@ -33,6 +33,32 @@ BEGIN
 END;
 GO
 
+CREATE FUNCTION loggerbasetests.Config_RetrieveFromSession_Return_Config()
+RETURNS XML
+AS
+BEGIN
+	RETURN '<log4mssql>SESSION</log4mssql>'
+END;
+GO
+
+CREATE FUNCTION loggerbasetests.Config_RetrieveFromSession_Return_Null()
+RETURNS XML
+AS
+BEGIN
+	RETURN '<log4mssql>
+    <appender name="Hard-Coded-Console" type="Logger.Appender_ConsoleAppender">
+        <layout type="Logger.Layout_PatternLayout">
+            <conversionPattern value="%timestamp %level %logger-%message" />
+        </layout>
+    </appender>
+	   <root>
+        <level value="DEBUG" />
+        <appender-ref ref="Hard-Coded-Console" />
+    </root>
+</log4mssql>'
+END;
+GO
+
 --Assert: Create tests to compare the expected and actual results of the object under test.
 CREATE PROCEDURE loggerbasetests.[Test Assert Appender_LocalDatabaseAppender Saves Log Message]
 AS
@@ -660,6 +686,63 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE loggerbasetests.[Test Assert Config_Retrieve Returns Override When Passed In]
+AS
+BEGIN
+
+	
+	DECLARE @ExpectedConfig VARCHAR(1000) = '<log4mssql>OVERRIDE</log4mssql>'
+
+	DECLARE @Config XML
+
+	EXEC LoggerBase.Config_Retrieve @Override = @ExpectedConfig, @Config = @Config OUTPUT
+
+	DECLARE @Actual VARCHAR(1000) = CONVERT(VARCHAR(1000), @Config)
+
+	EXEC tSQLt.AssertEquals @Expected = @ExpectedConfig, @Actual = @Actual
+
+END;
+GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert Config_Retrieve Returns Session Config When No Override And Session Config Not Null]
+AS
+BEGIN
+
+	EXEC tSQLt.FakeFunction @FunctionName = 'LoggerBase.Config_RetrieveFromSession', @FakeFunctionName = 'loggerbasetests.Config_RetrieveFromSession_Return_Config'
+
+	DECLARE @ExpectedConfig VARCHAR(1000) = '<log4mssql>SESSION</log4mssql>'
+
+	DECLARE @Config XML
+
+	EXEC LoggerBase.Config_Retrieve @Override = @ExpectedConfig, @Config = @Config OUTPUT
+
+	DECLARE @Actual VARCHAR(1000) = CONVERT(VARCHAR(1000), @Config)
+
+	EXEC tSQLt.AssertEquals @Expected = @ExpectedConfig, @Actual = @Actual
+
+END;
+GO
+
+CREATE PROCEDURE loggerbasetests.[Test Assert Config_Retrieve Returns Session Config When No Override And Is Null Return Hard-Coded Default]
+AS
+BEGIN
+
+	EXEC tSQLt.FakeFunction @FunctionName = 'LoggerBase.Config_RetrieveFromSession', @FakeFunctionName = 'loggerbasetests.Config_RetrieveFromSession_Return_Null'
+
+	DECLARE @ExpectedConfig VARCHAR(1000) = '<log4mssql><appender name="Hard-Coded-Console" type="Logger.Appender_ConsoleAppender"><layout type="Logger.Layout_PatternLayout"><conversionPattern value="%timestamp %level %logger-%message"/></layout></appender><root><level value="DEBUG"/><appender-ref ref="Hard-Coded-Console"/></root></log4mssql>'
+
+	DECLARE @Config XML
+
+	EXEC LoggerBase.Config_Retrieve @Override = @ExpectedConfig, @Config = @Config OUTPUT
+
+	DECLARE @Actual VARCHAR(1000) = CONVERT(VARCHAR(1000), @Config)
+
+	EXEC tSQLt.AssertEquals @Expected = @ExpectedConfig, @Actual = @Actual
+
+END;
+GO
+
+--Setting this aside for now. The tSQLt transaction locks us out.
 --CREATE PROCEDURE loggerbasetests.[Test Assert Console MSSQL Appender Saves To Table]
 --AS
 --BEGIN
@@ -726,6 +809,7 @@ GO
 --GO
 
 EXEC tSQLt.Run 'loggerbasetests'
---EXEC tSQLt.Run 'loggerbasetests.[Test Assert Config_Appenders_FilteredByLevel Returns Appenders When Request Level Is At Appender Level]'
+
+--EXEC tSQLt.Run 'loggerbasetests.[Test Assert Config_Retrieve Returns Session Config When No Override And Is Null Return Hard-Coded Default]'
 GO
 
