@@ -908,6 +908,31 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE loggerbasetests.[Test Assert Layout_FormatMessage Calls Passed-In Type]
+AS
+BEGIN
+
+	EXEC tSQLt.SpyProcedure @ProcedureName = N'LoggerBase.Layout_PatternLayout',   -- nvarchar(max)
+	                        @CommandToExecute = N'SET @FormattedMessage = ''Test Layout Type Called''' -- nvarchar(max)
+
+	DECLARE @FormattedMessage VARCHAR(4000);
+	EXEC LoggerBase.Layout_FormatMessage @LayoutTypeName = 'LoggerBase.Layout_PatternLayout',                      -- sysname
+	                                     @LoggerName = 'TEST',                            -- varchar(500)
+	                                     @LogLevelName = 'INFO',                          -- varchar(500)
+	                                     @Message = 'Just a test',                               -- varchar(max)
+	                                     @LayoutConfig = NULL,                        -- xml
+	                                     @Debug = 0,                               -- bit
+	                                     @FormattedMessage = @FormattedMessage OUTPUT -- varchar(max)
+	
+	EXEC tSQLt.AssertEquals @Expected = 'Test Layout Type Called', -- sql_variant
+	                        @Actual = @FormattedMessage   -- sql_variant
+	                        
+	
+	
+
+END;
+GO
+
 --Setting this aside for now. The tSQLt transaction locks us out.
 --CREATE PROCEDURE loggerbasetests.[Test Assert Console MSSQL Appender Saves To Table]
 --AS
@@ -976,6 +1001,6 @@ GO
 
 EXEC tSQLt.Run 'loggerbasetests'
 
---EXEC tSQLt.Run 'loggerbasetests.[Test Assert Session_Level_Set Creates The Session When It Does Not Already Exist]'
+--EXEC tSQLt.Run 'loggerbasetests.[Test Assert Layout_FormatMessage Calls Passed-In Type]'
 GO
 

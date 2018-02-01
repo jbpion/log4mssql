@@ -1,11 +1,14 @@
 <#To run build:
-1) Download psake from https://github.com/psake/psake
-2) Set-Location <psake download location>
-3) Import-Module psake.psm1 
-4) Download tSQLt from http://tsqlt.org/downloads/ to \log4mssql\log4mssql\Tests and extract the zip file.
-5) Set-Location .\log4mssql\Build
-6) Invoke-psake .\Build.ps1
-7) To run a specific target add the target name. E.g. To run tests: Invoke-psake .\Build.ps1 RunTests
+1)  Download psake from https://github.com/psake/psake
+2)  Set-Location <psake download location>
+3)  Import-Module psake.psm1 
+4)  Download tSQLt from http://tsqlt.org/downloads/ to \log4mssql\log4mssql\Tests and extract the zip file.
+5)  Download the Pester testing framework from https://github.com/pester/Pester to \log4mssql\log4mssql\Build and extract to Pester-master
+6)  Set-Location .\log4mssql\Build\Pester-master
+7)  Import-Module Pester-master\Pester.psm1 -Force
+8)  Set-Location .\log4mssql\Build\
+9)  Invoke-psake .\Build.ps1
+10) To run a specific target add the target name. E.g. To run tests: Invoke-psake .\Build.ps1 RunTests
 #>
 
 properties {
