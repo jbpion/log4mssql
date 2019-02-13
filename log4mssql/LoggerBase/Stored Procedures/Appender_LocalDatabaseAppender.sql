@@ -4,8 +4,7 @@ GO
 /*********************************************************************************************
 
     PROCEDURE LoggerBase.Appender_LocalDatabaseAppender
-   
-    Property of Clearent, LLC
+
     Date:           11/30/2017
     Author:         Jerome Pion
     Description:    Writes logging entries to the local database within the in-scope transaction.

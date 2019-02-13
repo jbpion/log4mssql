@@ -1,4 +1,7 @@
-﻿
+IF OBJECT_ID('LoggerBase.Logger_Base') IS NOT NULL
+DROP PROCEDURE [LoggerBase].[Logger_Base]
+GO
+
 /*********************************************************************************************
 
     PROCEDURE LoggerBase.Logger_Base
@@ -105,23 +108,56 @@ EXEC LoggerBase.Logger_Base
 
 **********************************************************************************************/
 
-CREATE PROCEDURE LoggerBase.Logger_Base 
+CREATE PROCEDURE [LoggerBase].[Logger_Base] 
 (
 	  @Message               VARCHAR(MAX)
 	, @LoggerName            VARCHAR(500)
 	, @Config                XML          = NULL
 	, @StoredConfigName      VARCHAR(500) = NULL
 	, @RequestedLogLevelName VARCHAR(100)
+	, @LogConfiguration      LogConfiguration = NULL
 	, @Debug                 BIT = 0
 )
 
 AS
 
     SET NOCOUNT ON
+	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+
 	DECLARE @PrivateConfig XML
+
+	select * FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
+
+	SELECT 
+	 @LoggerName       = COALESCE(@LoggerName, C.ConfigurationPropertyValue)
+	FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
+	WHERE 1=1
+	AND C.ConfigurationPropertyName = 'LoggerName'
+
+	SELECT 
+	 @StoredConfigName = COALESCE(@StoredConfigName, C.ConfigurationPropertyValue)
+	FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
+	WHERE 1=1
+	AND C.ConfigurationPropertyName = 'SavedConfigurationName'
+
+	SELECT 
+	 @Config           = COALESCE(@Config, IIF(RTRIM(C.ConfigurationPropertyValue) = '', NULL, C.ConfigurationPropertyValue))
+	FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
+	WHERE 1=1
+	AND C.ConfigurationPropertyName = 'ConfigurationXml'
+
+
+	--TODO: Normalize out get by config name
+	IF (@Config IS NULL) 
+	BEGIN
+		IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:Retrieving StoredConfig, ', @StoredConfigName, ' from LoggerBase.Config_Saved.')
+		SELECT @Config = (SELECT ConfigXML FROM LoggerBase.Config_Saved WHERE ConfigName = @StoredConfigName)
+	END
 	EXEC LoggerBase.Config_Retrieve @Override = @Config, @Config = @PrivateConfig OUTPUT, @Debug = @Debug
 
 	IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@Config:', CONVERT(VARCHAR(MAX), @Config))
+	IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@StoredConfigName:', CONVERT(VARCHAR(MAX), @StoredConfigName))
+	IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@RequestedLogLevelName:', CONVERT(VARCHAR(MAX), @RequestedLogLevelName))
 
 	DECLARE @Appenders TABLE
 	(
@@ -165,4 +201,7 @@ AS
 		SET @Counter += 1
 
 	END
+
+GO
+
 

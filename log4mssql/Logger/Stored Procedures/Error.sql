@@ -1,4 +1,7 @@
-﻿
+IF OBJECT_ID('Logger.Error') IS NOT NULL
+DROP PROCEDURE [Logger].[Error]
+GO
+
 /*********************************************************************************************
 
     PROCEDURE Logger.ERROR
@@ -20,12 +23,13 @@
 
 **********************************************************************************************/
 
-CREATE PROCEDURE Logger.Error
+CREATE PROCEDURE [Logger].[Error]
 (
 	  @Message               VARCHAR(MAX)
 	, @LoggerName            VARCHAR(500)
 	, @Config                XML          = NULL
 	, @StoredConfigName      VARCHAR(500) = NULL
+	, @LogConfiguration      LogConfiguration = NULL
 	, @DEBUG                 BIT          = 0
 )
 
@@ -39,5 +43,9 @@ AS
 	, @RequestedLogLevelName = 'ERROR'
 	, @Config                = @Config
 	, @StoredConfigName      = @StoredConfigName
+	, @LogConfiguration      = @LogConfiguration
 	, @DEBUG                 = @DEBUG
+
+GO
+
 

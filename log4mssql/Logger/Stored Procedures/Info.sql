@@ -1,4 +1,7 @@
-﻿
+IF OBJECT_ID('Logger.Info') IS NOT NULL
+DROP PROCEDURE [Logger].[Info]
+GO
+
 /*********************************************************************************************
 
     PROCEDURE Logger.INFO
@@ -20,12 +23,13 @@
 
 **********************************************************************************************/
 
-CREATE PROCEDURE Logger.Info
+CREATE PROCEDURE [Logger].[Info]
 (
 	  @Message               VARCHAR(MAX)
-	, @LoggerName            VARCHAR(500)
+	, @LoggerName            VARCHAR(500) = NULL
 	, @Config                XML          = NULL
 	, @StoredConfigName      VARCHAR(500) = NULL
+	, @LogConfiguration      LogConfiguration = NULL
 	, @DEBUG                 BIT          = 0
 )
 
@@ -39,5 +43,9 @@ AS
 	, @RequestedLogLevelName = 'INFO'
 	, @Config                = @Config
 	, @StoredConfigName      = @StoredConfigName
+	, @LogConfiguration      = @LogConfiguration
 	, @DEBUG                 = @DEBUG
+
+GO
+
 

@@ -1,4 +1,7 @@
-﻿
+IF OBJECT_ID('LoggerBase.Config_Retrieve') IS NOT NULL
+DROP PROCEDURE [LoggerBase].[Config_Retrieve]
+GO
+
 /*********************************************************************************************
 
     PROCEDURE LoggerBase.Config_Retrieve
@@ -17,7 +20,7 @@
 
 **********************************************************************************************/
 
-CREATE PROCEDURE LoggerBase.Config_Retrieve
+CREATE PROCEDURE [LoggerBase].[Config_Retrieve]
 (
 	 @Override XML = NULL
     ,@Config XML OUTPUT
@@ -34,22 +37,34 @@ AS
 		RETURN
 	END
 
-	IF (@Override IS NULL)
-	SELECT @Config = LoggerBase.Config_RetrieveFromSession()
+	--IF (@Override IS NULL)
+	--BEGIN 
+	--	IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@Override is null calling LoggerBase.Config_RetrieveFromSession')
+	--	SELECT @Config = LoggerBase.Config_RetrieveFromSession()
+	--END
 
 	IF (@Config IS NULL)
-	SELECT @Config = ConfigXML FROM LoggerBase.Config_Saved WHERE ConfigName = 'DEFAULT'
+	BEGIN
+		IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']: @Config is null. Getting "DEFAULT" from saved configuration.')
+		SELECT @Config = ConfigXML FROM LoggerBase.Config_Saved WHERE ConfigName = 'DEFAULT'
+	END
 
 	IF (@Config IS NULL)
-	SELECT @Config = '<log4mssql>
-    <appender name="Hard-Coded-Console" type="Logger.Appender_ConsoleAppender">
-        <layout type="Logger.Layout_PatternLayout">
-            <conversionPattern value="%timestamp %level %logger-%message" />
-        </layout>
-    </appender>
-	   <root>
-        <level value="DEBUG" />
-        <appender-ref ref="Hard-Coded-Console" />
-    </root>
-</log4mssql>'
+	BEGIN
+		IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']: @Config is null. Assigning default string.')
+		SELECT @Config = '<log4mssql>
+		<appender name="Hard-Coded-Console" type="Logger.Appender_ConsoleAppender">
+			<layout type="Logger.Layout_PatternLayout">
+				<conversionPattern value="%timestamp %level %logger-%message" />
+			</layout>
+		</appender>
+		   <root>
+			<level value="DEBUG" />
+			<appender-ref ref="Hard-Coded-Console" />
+		</root>
+	</log4mssql>'
+	END
+
+GO
+
 
