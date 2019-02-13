@@ -1,10 +1,18 @@
 IF OBJECT_ID('Logger.Info') IS NOT NULL
-DROP PROCEDURE [Logger].[Info]
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE Logger.Info
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
 GO
 
 /*********************************************************************************************
 
-    PROCEDURE Logger.INFO
+    PROCEDURE Logger.Info
 
     Date:           11/28/2017
     Author:         Jerome Pion
@@ -23,13 +31,13 @@ GO
 
 **********************************************************************************************/
 
-CREATE PROCEDURE [Logger].[Info]
+ALTER PROCEDURE [Logger].[Info]
 (
 	  @Message               VARCHAR(MAX)
 	, @LoggerName            VARCHAR(500) = NULL
 	, @Config                XML          = NULL
 	, @StoredConfigName      VARCHAR(500) = NULL
-	, @LogConfiguration      LogConfiguration = NULL
+	, @LogConfiguration      LogConfiguration	
 	, @DEBUG                 BIT          = 0
 )
 

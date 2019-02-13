@@ -1,4 +1,14 @@
+IF OBJECT_ID('LoggerBase.Appender_ConsoleAppender') IS NOT NULL
+SET NOEXEC ON
+GO
 
+CREATE PROCEDURE LoggerBase.Appender_ConsoleAppender
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
+GO
 /*********************************************************************************************
 
     PROCEDURE LoggerBase.Appender_ConsoleAppender
@@ -27,7 +37,7 @@
 
 **********************************************************************************************/
 
-CREATE PROCEDURE LoggerBase.Appender_ConsoleAppender (@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @Debug BIT=0)
+ALTER PROCEDURE LoggerBase.Appender_ConsoleAppender (@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT=0)
 AS
 	
 	SET NOCOUNT ON
@@ -55,6 +65,7 @@ AS
 		, @LogLevelName    = @LogLevelName
 		, @Message         = @Message
 		, @LayoutConfig    = @LayoutConfig
+		, @CorrelationId   = @CorrelationId
 		, @Debug           = @Debug
 		, @FormattedMessage = @FormattedMessage OUTPUT
 

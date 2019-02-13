@@ -1,5 +1,13 @@
 IF OBJECT_ID('LoggerBase.Config_Saved_Set') IS NOT NULL
-DROP PROCEDURE [LoggerBase].[Config_Saved_Set]
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE LoggerBase.Config_Saved_Set
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
 GO
 
 /*********************************************************************************************
@@ -14,7 +22,7 @@ GO
 
 **********************************************************************************************/
 
-CREATE PROCEDURE [LoggerBase].[Config_Saved_Set]
+ALTER PROCEDURE [LoggerBase].[Config_Saved_Set]
 (
 	 @ConfigName VARCHAR(500)
     ,@Config XML OUTPUT

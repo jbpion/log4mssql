@@ -1,3 +1,14 @@
+IF OBJECT_ID('LoggerBase.Appender_FileAppender') IS NOT NULL
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE LoggerBase.Appender_FileAppender
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
+GO
 
 /*********************************************************************************************
 
@@ -28,7 +39,7 @@
 
 **********************************************************************************************/
 
-CREATE PROCEDURE LoggerBase.Appender_FileAppender (@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @Debug BIT=0)
+ALTER PROCEDURE LoggerBase.Appender_FileAppender (@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT=0)
 AS
 	
 	SET NOCOUNT ON
@@ -62,11 +73,16 @@ AS
 		  @LayoutTypeName  = @LayoutType
 		, @LoggerName      = @LoggerName
 		, @LogLevelName    = @LogLevelName
+		, @CorrelationId   = @CorrelationId
 		, @Message         = @Message
 		, @LayoutConfig    = @LayoutConfig
 		, @Debug           = @Debug
 		, @FormattedMessage = @FormattedMessage OUTPUT
 
+	IF (@Debug = 1)
+	BEGIN
+		PRINT CONCAT('[',OBJECT_NAME(@@PROCID),']:@FormattedMessage:'       , @FormattedMessage)
+	END
 		DECLARE 	 
 	 @text   NVARCHAR(4000) = @FormattedMessage
 	,@path   NVARCHAR(4000) = @FileName

@@ -124,6 +124,8 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
         ,"LoggerBase\Tables\Util_Configuration_Properties.sql"
         ,"LoggerBase\TableData\Populate Table LoggerBase_Config_Saved.sql"
         ,"LoggerBase\TableData\Populate Table LoggerBase_Core_Level.sql"
+        ,"LoggerBase\Functions\Core_Level_ConvertNameToValue.sql"
+        ,"LoggerBase\Functions\Appender_Filter_RangeFile_Apply.sql"
         ,"LoggerBase\Functions\Config_Appenders_Get.sql"
         #,"LoggerBase\Functions\Core_Level_RetrieveFromSession.sql"
         ,"LoggerBase\Functions\Layout_GetConversionPatternFromConfig.sql"
@@ -134,6 +136,7 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
         ,"LoggerBase\Functions\Config_Layout.sql"
         #,"LoggerBase\Functions\Config_RetrieveFromSession.sql"
         ,"LoggerBase\Functions\Config_Root_Get.sql"
+        ,"LoggerBase\Functions\Util_Split.sql"
         ,"LoggerBase\Functions\Configuration_Get_Properties.sql"
         ,"LoggerBase\Functions\Configuration_Set.sql"
         
@@ -191,7 +194,13 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
   }
 
   task RunTests -depends InstalltSQLt{
-    Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -InputFile $([System.IO.Path]::Combine($srcDirectory, "log4mssql\Tests\LoggerTests.sql")) -Verbose -ErrorAction Stop
+    Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -Query "EXEC tSQLt.NewTestClass 'loggerbasetests'" -Verbose -ErrorAction Stop
+    foreach ($file in ((Get-ChildItem -Path ([System.IO.Path]::Combine($srcDirectory, "log4mssql\Tests\")) -Filter "loggerbasetests.*.sql")))
+    {
+      #Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -InputFile $([System.IO.Path]::Combine($srcDirectory, "log4mssql\Tests\LoggerTests.sql")) -Verbose -ErrorAction Stop
+      Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -InputFile $file.FullName -Verbose -ErrorAction Stop
+    }
+    Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -Query "EXEC tSQLt.Run 'loggerbasetests'" -Verbose -ErrorAction Stop
     Import-Module Pester
     Invoke-Pester -Script @{Path ="$testsDirectory\LoggerTest.Appender.File.Tests.ps1"; Parameters = @{ buildDatabaseServer = $buildDatabaseServer; buildDatabaseName = $buildDatabaseName; testsDirectory = $testsDirectory }}
   } 

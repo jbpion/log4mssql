@@ -1,7 +1,17 @@
-﻿
+﻿IF OBJECT_ID('Logger.Warn') IS NOT NULL
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE Logger.Warn
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
+GO
 /*********************************************************************************************
 
-    PROCEDURE Logger.WARN
+    PROCEDURE Logger.Warn
 
     Date:           11/28/2017
     Author:         Jerome Pion
@@ -20,7 +30,7 @@
 
 **********************************************************************************************/
 
-CREATE PROCEDURE Logger.Warn
+ALTER PROCEDURE Logger.Warn
 (
 	  @Message               VARCHAR(MAX)
 	, @LoggerName            VARCHAR(500)

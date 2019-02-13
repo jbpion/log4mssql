@@ -1,4 +1,15 @@
-﻿
+﻿IF OBJECT_ID('Logger.Fatal') IS NOT NULL
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE Logger.Fatal
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
+GO
+
 /*********************************************************************************************
 
     PROCEDURE Logger.Fatal
@@ -20,7 +31,7 @@
 
 **********************************************************************************************/
 
-CREATE PROCEDURE Logger.Fatal
+ALTER PROCEDURE Logger.Fatal
 (
 	  @Message               VARCHAR(MAX)
 	, @LoggerName            VARCHAR(500)

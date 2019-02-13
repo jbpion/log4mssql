@@ -1,4 +1,15 @@
-﻿
+﻿IF OBJECT_ID('Logger.Debug') IS NOT NULL
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE Logger.Debug
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
+GO
+
 /*********************************************************************************************
 
     PROCEDURE Logger.Debug
@@ -20,7 +31,7 @@
 
 **********************************************************************************************/
 
-CREATE PROCEDURE Logger.Debug
+ALTER PROCEDURE Logger.Debug
 (
 	  @Message               VARCHAR(MAX)
 	, @LoggerName            VARCHAR(500)

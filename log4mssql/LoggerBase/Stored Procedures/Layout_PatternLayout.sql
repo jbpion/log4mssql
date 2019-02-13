@@ -1,4 +1,15 @@
-﻿
+﻿IF OBJECT_ID('LoggerBase.Layout_PatternLayout') IS NOT NULL
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE LoggerBase.Layout_PatternLayout
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
+GO
+
 /*********************************************************************************************
 
     PROCEDURE LoggerBase.Layout_PatternLayout
@@ -20,17 +31,26 @@
 
 **********************************************************************************************/
 
-CREATE PROCEDURE LoggerBase.Layout_PatternLayout
+ALTER PROCEDURE LoggerBase.Layout_PatternLayout
 (
 	  @LoggerName   VARCHAR(500)
 	, @LogLevelName VARCHAR(500)
+	
 	, @Message      VARCHAR(MAX)
 	, @Config       XML
 	, @Debug        BIT=0
+	, @CorrelationId VARCHAR(20) = NULL
 	, @FormattedMessage VARCHAR(MAX) OUTPUT
 )
 AS
 	SET NOCOUNT ON
+
+	IF (@Debug = 1) 
+	BEGIN
+		PRINT CONCAT('[',OBJECT_NAME(@@PROCID),']:@LoggerName:', @LoggerName)
+		PRINT CONCAT('[',OBJECT_NAME(@@PROCID),']:@CorrelationId:', @CorrelationId)
+		PRINT CONCAT('[',OBJECT_NAME(@@PROCID),']:@Config:', CONVERT(VARCHAR(MAX), @Config))
+	END
 	
 	DECLARE @ConversionPattern VARCHAR(MAX) = LoggerBase.Layout_GetConversionPatternFromConfig(@Config)
 
@@ -50,9 +70,12 @@ AS
 	SET @FormattedMessage = REPLACE(@FormattedMessage, '%r ', SYSDATETIME())
 	SET @FormattedMessage = REPLACE(@FormattedMessage, '% ', @@SPID)
 	SET @FormattedMessage = REPLACE(@FormattedMessage, '%thread', @@SPID)
+	SET @FormattedMessage = REPLACE(@FormattedMessage, '%spid', @@SPID)
 	SET @FormattedMessage = REPLACE(@FormattedMessage, '%timestamp', SYSDATETIME())
 	SET @FormattedMessage = REPLACE(@FormattedMessage, '%u ', LoggerBase.Layout_LoginUser())
 	SET @FormattedMessage = REPLACE(@FormattedMessage, '%username', LoggerBase.Layout_LoginUser())
 	SET @FormattedMessage = REPLACE(@FormattedMessage, '%utcdate', SYSUTCDATETIME())
 	SET @FormattedMessage = REPLACE(@FormattedMessage, '%w ', LoggerBase.Layout_LoginUser())
+	SET @FormattedMessage = REPLACE(@FormattedMessage, '%correlationid', @CorrelationId)
+	
 

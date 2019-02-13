@@ -1,4 +1,13 @@
-﻿IF OBJECT_ID('LoggerBase.Appender_LocalDatabaseAppender') IS NOT NULL DROP PROCEDURE LoggerBase.Appender_LocalDatabaseAppender
+﻿IF OBJECT_ID('LoggerBase.Appender_LocalDatabaseAppender') IS NOT NULL
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE LoggerBase.Appender_LocalDatabaseAppender
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
 GO
 
 /*********************************************************************************************
@@ -83,8 +92,8 @@ SELECT * FROM LoggerBase.TestLog
 
 **********************************************************************************************/
 
-CREATE PROCEDURE LoggerBase.Appender_LocalDatabaseAppender
-(@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @Debug BIT=0)
+ALTER PROCEDURE LoggerBase.Appender_LocalDatabaseAppender
+(@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT=0)
 AS
 	SET NOCOUNT ON
 
@@ -137,6 +146,7 @@ AS
 		  @LayoutTypeName  = @LayoutTypeName
 		, @LoggerName      = @LoggerName
 		, @LogLevelName    = @LogLevelName
+		, @CorrelationId   = @CorrelationId
 		, @Message         = @Message
 		, @LayoutConfig    = @LayoutConfig
 		, @Debug           = @Debug

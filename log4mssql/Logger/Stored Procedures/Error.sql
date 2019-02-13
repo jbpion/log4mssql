@@ -1,5 +1,13 @@
 IF OBJECT_ID('Logger.Error') IS NOT NULL
-DROP PROCEDURE [Logger].[Error]
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE Logger.Error
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
 GO
 
 /*********************************************************************************************
@@ -23,10 +31,10 @@ GO
 
 **********************************************************************************************/
 
-CREATE PROCEDURE [Logger].[Error]
+ALTER PROCEDURE [Logger].[Error]
 (
 	  @Message               VARCHAR(MAX)
-	, @LoggerName            VARCHAR(500)
+	, @LoggerName            VARCHAR(500) = NULL
 	, @Config                XML          = NULL
 	, @StoredConfigName      VARCHAR(500) = NULL
 	, @LogConfiguration      LogConfiguration = NULL

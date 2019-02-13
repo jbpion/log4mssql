@@ -1,1 +1,1 @@
-CREATE SCHEMA LoggerBase
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'LoggerBase') EXEC('CREATE SCHEMA LoggerBase')

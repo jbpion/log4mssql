@@ -1,5 +1,13 @@
 IF OBJECT_ID('LoggerBase.Config_Retrieve') IS NOT NULL
-DROP PROCEDURE [LoggerBase].[Config_Retrieve]
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE LoggerBase.Config_Retrieve
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
 GO
 
 /*********************************************************************************************
@@ -20,7 +28,7 @@ GO
 
 **********************************************************************************************/
 
-CREATE PROCEDURE [LoggerBase].[Config_Retrieve]
+ALTER PROCEDURE [LoggerBase].[Config_Retrieve]
 (
 	 @Override XML = NULL
     ,@Config XML OUTPUT

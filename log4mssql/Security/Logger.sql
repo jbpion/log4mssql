@@ -1,1 +1,1 @@
-CREATE SCHEMA Logger
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Logger') EXEC ('CREATE SCHEMA Logger')
