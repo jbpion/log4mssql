@@ -68,6 +68,10 @@ AS
 	WHERE 1=1
 	AND LL.LogLevelValue <= @LogLevelValue
 	--AND LL.LogLevelValue <= (SELECT LogLevelValue FROM LoggerBase.Core_Level WHERE LogLevelName = @RequestedLogLevelName)
+	AND AppenderName IN
+	(
+		SELECT AppenderName FROM LoggerBase.Appender_Filter_RangeFile_Apply(@Config, @RequestedLogLevelName) AS FilteredByRange
+	)
 	
 GO
 

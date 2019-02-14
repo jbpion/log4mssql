@@ -131,6 +131,7 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
         ,"LoggerBase\Functions\Layout_GetConversionPatternFromConfig.sql"
         ,"LoggerBase\Functions\Layout_GetDate.sql"
         ,"LoggerBase\Functions\Layout_LoginUser.sql"
+        ,"LoggerBase\Functions\Layout_JsonEscape.sql"
         #,"LoggerBase\Functions\Session_ContextID_Get.sql"
         #,"LoggerBase\Functions\Session_Level_Get.sql"
         ,"LoggerBase\Functions\Config_Layout.sql"
@@ -146,6 +147,7 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
         #,"LoggerBase\Stored Procedures\Session_Clear.sql"
         #,"LoggerBase\Stored Procedures\Session_Config_Set.sql"
         ,"LoggerBase\Stored Procedures\Layout_PatternLayout.sql"
+        ,"LoggerBase\Stored Procedures\Layout_JSONLayout.sql"
         ,"LoggerBase\Stored Procedures\Config_Appenders_FilteredByLevel.sql"
         ,"LoggerBase\Stored Procedures\Config_Retrieve.sql"
         ,"LoggerBase\Stored Procedures\Config_Saved_Set.sql"
@@ -198,6 +200,7 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
     foreach ($file in ((Get-ChildItem -Path ([System.IO.Path]::Combine($srcDirectory, "log4mssql\Tests\")) -Filter "loggerbasetests.*.sql")))
     {
       #Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -InputFile $([System.IO.Path]::Combine($srcDirectory, "log4mssql\Tests\LoggerTests.sql")) -Verbose -ErrorAction Stop
+      Write-Host "[RunTests]: Applying file $($file.FullName)"
       Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -InputFile $file.FullName -Verbose -ErrorAction Stop
     }
     Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database $buildDatabaseName -Query "EXEC tSQLt.Run 'loggerbasetests'" -Verbose -ErrorAction Stop
