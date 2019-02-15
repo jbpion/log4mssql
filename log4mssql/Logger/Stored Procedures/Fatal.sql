@@ -34,9 +34,10 @@ GO
 ALTER PROCEDURE Logger.Fatal
 (
 	  @Message               VARCHAR(MAX)
-	, @LoggerName            VARCHAR(500)
+	, @LoggerName            VARCHAR(500) = NULL
 	, @Config                XML          = NULL
 	, @StoredConfigName      VARCHAR(500) = NULL
+	, @LogConfiguration      LogConfiguration
 	, @DEBUG                 BIT          = 0
 )
 
@@ -50,5 +51,6 @@ AS
 	, @RequestedLogLevelName = 'FATAL'
 	, @Config                = @Config
 	, @StoredConfigName      = @StoredConfigName
+	, @LogConfiguration      = LogConfiguration
 	, @DEBUG                 = @DEBUG
 

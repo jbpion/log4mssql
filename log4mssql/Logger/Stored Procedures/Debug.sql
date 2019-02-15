@@ -34,9 +34,10 @@ GO
 ALTER PROCEDURE Logger.Debug
 (
 	  @Message               VARCHAR(MAX)
-	, @LoggerName            VARCHAR(500)
+	, @LoggerName            VARCHAR(500) = NULL
 	, @Config                XML          = NULL
 	, @StoredConfigName      VARCHAR(500) = NULL
+	, @LogConfiguration      LogConfiguration	
 	, @Debug                 BIT          = 0
 )
 
@@ -50,5 +51,6 @@ AS
 	, @RequestedLogLevelName = 'DEBUG'
 	, @Config                = @Config
 	, @StoredConfigName      = @StoredConfigName
+	, @LogConfiguration      = @LogConfiguration
 	, @Debug                 = @Debug
 

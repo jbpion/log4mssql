@@ -140,6 +140,8 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
         ,"LoggerBase\Functions\Util_Split.sql"
         ,"LoggerBase\Functions\Configuration_Get_Properties.sql"
         ,"LoggerBase\Functions\Configuration_Set.sql"
+        ,"LoggerBase\Functions\Configuration_Get.sql"
+        ,"LoggerBase\Functions\CorrelationId.sql"
         
 		,"LoggerBase\Stored Procedures\Appender_File_Private_WriteTextFile.sql"
         #,"LoggerBase\Stored Procedures\Session_ContextID_Set.sql"
