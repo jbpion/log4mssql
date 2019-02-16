@@ -31,7 +31,7 @@ GO
 
 **********************************************************************************************/
 
-ALTER PROCEDURE LoggerBase.Layout_JSONLayout
+ALTER PROCEDURE LoggerBase.Layout_JsonLayout
 (
 	  @LoggerName   VARCHAR(500)
 	, @LogLevelName VARCHAR(500)
@@ -57,69 +57,43 @@ AS
 
 	
 
-	DECLARE @TokenReplacements TABLE
-	(
-		TokenElement VARCHAR(500)
-		,JSONPropertyName VARCHAR(500)
-		,TokenReplacement VARCHAR(MAX) 
-	)
+	--DECLARE @TokenReplacements TABLE
+	--(
+	--	TokenElement VARCHAR(500)
+	--	,JSONPropertyName VARCHAR(500)
+	--	,TokenReplacement VARCHAR(MAX) 
+	--)
 
-	INSERT INTO @TokenReplacements
-	(TokenElement, JSONPropertyName, TokenReplacement)
-	VALUES
-	 ('%d', 'Date', CONVERT(CHAR(10), LoggerBase.Layout_GetDate(), 120))
-	,('%date', 'Date', CONVERT(CHAR(10), LoggerBase.Layout_GetDate(), 120))
-	,('%identity', 'Identity', LoggerBase.Layout_LoginUser())
-	,('%level', 'Level', @LogLevelName)
-	,('%logger', 'Logger', @LoggerName)
-	,('%m', 'Message', @Message)
-	,('%message', 'Message', @Message)
-	,('%p', 'Level', @LogLevelName)
-	,('%r', 'TimeStamp', CONCAT(SYSDATETIME(),''))
-	,('%', 'SessionId', CONCAT(@@SPID, ''))
-	,('%thread', 'SessionId', CONCAT(@@SPID, ''))
-	,('%spid', 'SessionId', CONCAT(@@SPID, ''))
-	,('%timestamp', 'TimeStamp', CONCAT(SYSDATETIME(),''))
-	,('%u', 'UserName', LoggerBase.Layout_LoginUser())
-	,('%username', 'UserName', LoggerBase.Layout_LoginUser())
-	,('%utcdate', 'UTCDate', CONCAT(SYSUTCDATETIME(),''))
-	,('%w', 'UserName', LoggerBase.Layout_LoginUser())
-	,('%correlationid', 'CorrelationId',  @CorrelationId)
+	--INSERT INTO @TokenReplacements
+	--(TokenElement, JSONPropertyName, TokenReplacement)
+	--VALUES
+	-- ('%d', 'Date', CONVERT(CHAR(10), LoggerBase.Layout_GetDate(), 120))
+	--,('%date', 'Date', CONVERT(CHAR(10), LoggerBase.Layout_GetDate(), 120))
+	--,('%identity', 'Identity', LoggerBase.Layout_LoginUser())
+	--,('%level', 'Level', @LogLevelName)
+	--,('%logger', 'Logger', @LoggerName)
+	--,('%m', 'Message', @Message)
+	--,('%message', 'Message', @Message)
+	--,('%p', 'Level', @LogLevelName)
+	--,('%r', 'TimeStamp', CONCAT(SYSDATETIME(),''))
+	--,('%', 'SessionId', CONCAT(@@SPID, ''))
+	--,('%thread', 'SessionId', CONCAT(@@SPID, ''))
+	--,('%spid', 'SessionId', CONCAT(@@SPID, ''))
+	--,('%timestamp', 'TimeStamp', CONCAT(SYSDATETIME(),''))
+	--,('%u', 'UserName', LoggerBase.Layout_LoginUser())
+	--,('%username', 'UserName', LoggerBase.Layout_LoginUser())
+	--,('%utcdate', 'UTCDate', CONCAT(SYSUTCDATETIME(),''))
+	--,('%w', 'UserName', LoggerBase.Layout_LoginUser())
+	--,('%correlationid', 'CorrelationId',  @CorrelationId)
 
 
 	--SELECT @FormattedMessage = COALESCE(@FormattedMessage + '"' + JSONPropertyName + '":"' + TokenReplacement + '"', ',', '')
-	SELECT @FormattedMessage = COALESCE(@FormattedMessage + ',', '') + CONCAT('"', JSONPropertyName, '":"', TokenReplacement, '"')
+	--SELECT @FormattedMessage = COALESCE(@FormattedMessage + ',', '') + CONCAT('"', JSONPropertyName, '":"', LoggerBase.Layout_JsonEscape(TokenReplacement), '"')
+	SELECT @FormattedMessage = COALESCE(@FormattedMessage + ',', '') + CONCAT('"', TokenProperty, '":"', LoggerBase.Layout_JsonEscape(TokenCurrentValue), '"')
 	FROM LoggerBase.Util_Split(@ConversionPattern, '|') T
-	LEFT JOIN @TokenReplacements R ON T.Item = R.TokenElement
+	--LEFT JOIN @TokenReplacements R ON T.Item = R.TokenElement
+	LEFT JOIN LoggerBase.Layout_GetTokens(@LoggerName, @LogLevelName, @Message, @CorrelationId) R ON T.Item = R.Token
 
 	SET @FormattedMessage = CONCAT('{', @FormattedMessage, '}')
-
-	SELECT *
-	FROM LoggerBase.Util_Split(@ConversionPattern, '|') T
-	LEFT JOIN @TokenReplacements R ON T.Item = R.TokenElement
-
-	--SET @FormattedMessage = @ConversionPattern
-	
-	--SET @FormattedMessage = REPLACE(@FormattedMessage COLLATE Latin1_General_CS_AS, '%c ', @LoggerName)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%d ', LoggerBase.Layout_GetDate())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%date', LoggerBase.Layout_GetDate())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%identity', LoggerBase.Layout_LoginUser())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%level', @LogLevelName)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%logger', @LoggerName)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%m ', @Message)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%message', @Message)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%n ', CHAR(13))
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%newline', CHAR(13))
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%p ', @LogLevelName)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%r ', SYSDATETIME())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '% ', @@SPID)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%thread', @@SPID)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%spid', @@SPID)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%timestamp', SYSDATETIME())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%u ', LoggerBase.Layout_LoginUser())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%username', LoggerBase.Layout_LoginUser())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%utcdate', SYSUTCDATETIME())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%w ', LoggerBase.Layout_LoginUser())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%correlationid', @CorrelationId)
 	
 
