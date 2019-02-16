@@ -35,12 +35,13 @@ RETURNS TABLE
 AS RETURN
 (
 	SELECT '%d' AS Token, 'Date' AS TokenProperty, '' AS TokenDescription, CONVERT(CHAR(10), LoggerBase.Layout_GetDate(), 120) AS TokenCurrentValue
-	UNION ALL SELECT '%logger',        'Logger',          '', @LogLevelName
+	UNION ALL SELECT '%logger',        'Logger',          '', @LoggerName
 	UNION ALL SELECT '%identity',      'Identity',        '', LoggerBase.Layout_LoginUser()
 	UNION ALL SELECT '%m ',             'Message',         '', @Message
 	UNION ALL SELECT '%message',       'Message',         '', @Message
-	UNION ALL SELECT '%n ', 'NewLine', CHAR(13)
-	UNION ALL SELECT '%newline', 'NewLine', CHAR(13)
+	UNION ALL SELECT '%n ', 'NewLine', '', CHAR(13)
+	UNION ALL SELECT '%newline', 'NewLine', '', CHAR(13)
+	UNION ALL SELECT '%Level',             'Level',           '', @LogLevelName
 	UNION ALL SELECT '%p ',             'Level',           '', @LogLevelName
 	UNION ALL SELECT '%r ',             'TimeStamp',       '', CONCAT(SYSDATETIME(),'')
 	UNION ALL SELECT '% ',              'SessionId',       '', CONCAT(@@SPID, '')

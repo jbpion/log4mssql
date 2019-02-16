@@ -25,7 +25,7 @@ GO
 ALTER PROCEDURE [LoggerBase].[Config_Saved_Set]
 (
 	 @ConfigName VARCHAR(500)
-    ,@Config XML OUTPUT
+    ,@Config XML 
 	,@Debug  BIT = 0
 )
 
