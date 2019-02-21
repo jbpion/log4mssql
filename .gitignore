@@ -1,2 +1,5 @@
 
 .vs/log4mssql/v14/.ssms_suo
+/log4mssql/LoggerBase/Assemblies/LoggerBase_Exec_Non_Transacted_Query.dll
+/log4mssql/Tests/tSQLt/SetClrEnabled.sql
+/log4mssql/Tests/tSQLt/tSQLt.class.sql
