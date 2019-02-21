@@ -128,92 +128,96 @@ AS
 	--DECLARE @PrivateConfig XML
 
 	--select * FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
-
-	SELECT 
-	 @LoggerName       = COALESCE(@LoggerName, C.ConfigurationPropertyValue)
-	FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
-	WHERE 1=1
-	AND C.ConfigurationPropertyName = 'LoggerName'
-
-	SELECT 
-	 @StoredConfigName = RTRIM(COALESCE(@StoredConfigName, C.ConfigurationPropertyValue))
-	FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
-	WHERE 1=1
-	AND C.ConfigurationPropertyName = 'SavedConfigurationName'
-
-	SELECT 
-	 @Config           = COALESCE(@Config, IIF(RTRIM(C.ConfigurationPropertyValue) = '', NULL, C.ConfigurationPropertyValue))
-	FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
-	WHERE 1=1
-	AND C.ConfigurationPropertyName = 'ConfigurationXml'
-
-	SELECT 
-	 @CorrelationId    = COALESCE(@CorrelationId, IIF(RTRIM(C.ConfigurationPropertyValue) = '', NULL, C.ConfigurationPropertyValue))
-	FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
-	WHERE 1=1
-	AND C.ConfigurationPropertyName = 'CorrelationId'
-
-
-	--TODO: Normalize out get by config name
-	IF (@Config IS NULL) 
-	BEGIN
-		IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:Retrieving StoredConfig, "', @StoredConfigName, '" from LoggerBase.Config_Saved.')
-		SELECT @Config = ConfigXML FROM LoggerBase.Config_Saved WHERE ConfigName = @StoredConfigName
-		DECLARE @RowCount INT = @@ROWCOUNT
-		IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']: ', @RowCount, ' row(s) returned from LoggerBase.Config_Save.')
-	END
-	--EXEC LoggerBase.Config_Retrieve @Override = @Config, @Config = @PrivateConfig OUTPUT, @Debug = @Debug
-
-	IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@Config:               ', CONVERT(VARCHAR(MAX), @Config))
-	IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@StoredConfigName:     "', CONVERT(VARCHAR(MAX), @StoredConfigName), '"')
-	IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@RequestedLogLevelName:"', CONVERT(VARCHAR(MAX), @RequestedLogLevelName), '"')
-	IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@CorrelationId:"        ', CONVERT(VARCHAR(MAX), @CorrelationId), '"')
-
-	DECLARE @Appenders TABLE
-	(
-		RowID INT
-		,AppenderType SYSNAME
-		,AppenderConfig XML
-	)
-	INSERT INTO @Appenders
-	EXEC LoggerBase.Config_Appenders_FilteredByLevel
-		 @Config                = @Config--@PrivateConfig           
-		,@RequestedLogLevelName = @RequestedLogLevelName
-		,@Debug                 = @Debug
-	SET @RowCount = @@ROWCOUNT
-	IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:Found ', @RowCount, ' appenders.')
-
-	DECLARE @Counter INT
-	DECLARE @Limit   INT
-	DECLARE @SQL     NVARCHAR(MAX)
-	DECLARE @AppenderConfig XML
-
-	SELECT @Counter = MIN(RowID), @Limit = MAX(RowID)
-	FROM @Appenders
-
-	WHILE (@Counter <= @Limit)
-	BEGIN
-		SELECT @SQL = CONCAT(A.AppenderType, ' @LoggerName, @LogLevelName, @Message, @Config, @CorrelationId, @Debug')
-		,@AppenderConfig = AppenderConfig
-		FROM @Appenders A
+	BEGIN TRY
+		SELECT 
+		 @LoggerName       = COALESCE(@LoggerName, C.ConfigurationPropertyValue)
+		FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
 		WHERE 1=1
-		AND RowID = @Counter
+		AND C.ConfigurationPropertyName = 'LoggerName'
 
-		IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@SQL:', @SQL)
-		IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@Message:', @Message)
-		IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@AppenderConfig:', CONVERT(VARCHAR(MAX), @AppenderConfig))
+		SELECT 
+		 @StoredConfigName = RTRIM(COALESCE(@StoredConfigName, C.ConfigurationPropertyValue))
+		FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
+		WHERE 1=1
+		AND C.ConfigurationPropertyName = 'SavedConfigurationName'
 
-		EXECUTE sp_executesql @SQL, N'@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT'
-		, @LoggerName    = @LoggerName
-		, @LogLevelName  = @RequestedLogLevelName
-		, @Message       = @Message
-		, @Config        = @AppenderConfig
-		, @CorrelationId = @CorrelationId
-		, @Debug         = @Debug
+		SELECT 
+		 @Config           = COALESCE(@Config, IIF(RTRIM(C.ConfigurationPropertyValue) = '', NULL, C.ConfigurationPropertyValue))
+		FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
+		WHERE 1=1
+		AND C.ConfigurationPropertyName = 'ConfigurationXml'
 
-		SET @Counter += 1
+		SELECT 
+		 @CorrelationId    = COALESCE(@CorrelationId, IIF(RTRIM(C.ConfigurationPropertyValue) = '', NULL, C.ConfigurationPropertyValue))
+		FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
+		WHERE 1=1
+		AND C.ConfigurationPropertyName = 'CorrelationId'
 
-	END
+
+		--TODO: Normalize out get by config name
+		IF (@Config IS NULL) 
+		BEGIN
+			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:Retrieving StoredConfig, "', @StoredConfigName, '" from LoggerBase.Config_Saved.')
+			SELECT @Config = ConfigXML FROM LoggerBase.Config_Saved WHERE ConfigName = @StoredConfigName
+			DECLARE @RowCount INT = @@ROWCOUNT
+			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']: ', @RowCount, ' row(s) returned from LoggerBase.Config_Save.')
+		END
+		--EXEC LoggerBase.Config_Retrieve @Override = @Config, @Config = @PrivateConfig OUTPUT, @Debug = @Debug
+
+		IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@Config:               ', CONVERT(VARCHAR(MAX), @Config))
+		IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@StoredConfigName:     "', CONVERT(VARCHAR(MAX), @StoredConfigName), '"')
+		IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@RequestedLogLevelName:"', CONVERT(VARCHAR(MAX), @RequestedLogLevelName), '"')
+		IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@CorrelationId:"        ', CONVERT(VARCHAR(MAX), @CorrelationId), '"')
+
+		DECLARE @Appenders TABLE
+		(
+			RowID INT
+			,AppenderType SYSNAME
+			,AppenderConfig XML
+		)
+		INSERT INTO @Appenders
+		EXEC LoggerBase.Config_Appenders_FilteredByLevel
+			 @Config                = @Config--@PrivateConfig           
+			,@RequestedLogLevelName = @RequestedLogLevelName
+			,@Debug                 = @Debug
+		SET @RowCount = @@ROWCOUNT
+		IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:Found ', @RowCount, ' appenders.')
+
+		DECLARE @Counter INT
+		DECLARE @Limit   INT
+		DECLARE @SQL     NVARCHAR(MAX)
+		DECLARE @AppenderConfig XML
+
+		SELECT @Counter = MIN(RowID), @Limit = MAX(RowID)
+		FROM @Appenders
+
+		WHILE (@Counter <= @Limit)
+		BEGIN
+			SELECT @SQL = CONCAT(A.AppenderType, ' @LoggerName, @LogLevelName, @Message, @Config, @CorrelationId, @Debug')
+			,@AppenderConfig = AppenderConfig
+			FROM @Appenders A
+			WHERE 1=1
+			AND RowID = @Counter
+
+			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@SQL:', @SQL)
+			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@Message:', @Message)
+			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@AppenderConfig:', CONVERT(VARCHAR(MAX), @AppenderConfig))
+
+			EXECUTE sp_executesql @SQL, N'@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT'
+			, @LoggerName    = @LoggerName
+			, @LogLevelName  = @RequestedLogLevelName
+			, @Message       = @Message
+			, @Config        = @AppenderConfig
+			, @CorrelationId = @CorrelationId
+			, @Debug         = @Debug
+
+			SET @Counter += 1
+
+		END
+	END TRY
+	BEGIN CATCH
+		PRINT CONCAT('Procedure ', ERROR_PROCEDURE(), ' on line ', ERROR_LINE(), 'Error Number (', ERROR_NUMBER(),') Message: ', ERROR_MESSAGE())
+	END CATCH
 
 GO
 

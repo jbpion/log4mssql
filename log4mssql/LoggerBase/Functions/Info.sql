@@ -18,6 +18,9 @@ SELECT  [Version] = '1.0.0.0001'
                PARSENAME(PSV.ProductVersion,2) build,
                PARSENAME(PSV.ProductVersion,1) revision,
                Edition AS SqlEdition
-          FROM tSQLt.Private_SqlVersion() AS PSV
+          FROM (  
+			SELECT CAST(SERVERPROPERTY('ProductVersion')AS NVARCHAR(128)) ProductVersion,
+			CAST(SERVERPROPERTY('Edition')AS NVARCHAR(128)) Edition
+		) AS PSV
       )VI
   )V;
