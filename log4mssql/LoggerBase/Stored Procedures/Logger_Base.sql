@@ -153,12 +153,16 @@ AS
 		WHERE 1=1
 		AND C.ConfigurationPropertyName = 'CorrelationId'
 
+		IF (RTRIM(@LoggerName) = '') SET @LoggerName = 'NoLogNameSupplied'
+		IF (RTRIM(@CorrelationId) = '') SET @CorrelationId = Logger.CorrelationId()
+
 
 		--TODO: Normalize out get by config name
 		IF (@Config IS NULL) 
 		BEGIN
 			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:Retrieving StoredConfig, "', @StoredConfigName, '" from LoggerBase.Config_Saved.')
-			SELECT @Config = ConfigXML FROM LoggerBase.Config_Saved WHERE ConfigName = @StoredConfigName
+			--SELECT @Config = ConfigXML FROM LoggerBase.Config_Saved WHERE ConfigName = @StoredConfigName
+			EXEC LoggerBase.Config_Retrieve @Override = NULL, @Config = @Config OUTPUT, @Debug = @Debug
 			DECLARE @RowCount INT = @@ROWCOUNT
 			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']: ', @RowCount, ' row(s) returned from LoggerBase.Config_Save.')
 		END

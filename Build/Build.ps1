@@ -76,7 +76,7 @@ task RegisterAssemblyWithDatabase -depends CompileCLRAssembly, CreateDatabase {
     
     CREATE ASSEMBLY log4mssql
     FROM '$srcDirectory\log4mssql\LoggerBase\Assemblies\LoggerBase_Exec_Non_Transacted_Query.dll'
-    WITH PERMISSION_SET = EXTERNAL_ACCESS
+    WITH PERMISSION_SET = UNSAFE --Required for mutex
     GO"
 
     Invoke-Sqlcmd -ServerInstance $buildDatabaseServer -Database master -Query $assemblyRegistrationQuery

@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.IO;
+using System.Threading;
 using System.Xml;
 using Microsoft.SqlServer.Server;
 
@@ -199,3 +200,60 @@ public class ReadWriteFiles
     }
   }
 };
+
+public class WriteFilesWithMutex
+{
+    [Microsoft.SqlServer.Server.SqlProcedure]
+    public static void WriteTextFile(SqlString text,
+                                          SqlString path,
+                                          SqlBoolean append,
+                                          SqlString mutexname,
+                                          out SqlInt32 exitCode,
+                                          out SqlString errorMessage)
+    {
+        errorMessage = new SqlString(string.Empty);
+        try
+        {
+            // Check for null input.
+            if (!text.IsNull &&
+                !path.IsNull &&
+                !append.IsNull)
+            {
+                // Get the directory information for the specified path.
+                var dir = Path.GetDirectoryName(path.Value);
+                // Determine whether the specified path refers to an existing directory.
+                if (!Directory.Exists(dir))
+                    // Create all the directories in the specified path.
+                    Directory.CreateDirectory(dir);
+                // Initialize a new instance of the StreamWriter class
+                // for the specified file on the specified path.
+                // If the file exists, it can be either overwritten or appended to.
+                // If the file does not exist, create a new file.
+                using (var mutex = new Mutex(false, mutexname.Value))
+                {
+                    mutex.WaitOne();
+                    using (var sw = new StreamWriter(path.Value, append.Value))
+                    {
+                        // Write specified text followed by a line terminator.
+                        sw.WriteLine(text);
+                    }
+                    mutex.ReleaseMutex();
+                }
+                // Return true on success.
+
+                exitCode = new SqlInt32(0);
+            }
+            else
+                // Return null if any input is null.
+                exitCode = new SqlInt32(1);
+        }
+        catch (Exception ex)
+        {
+            // Return null on error.
+            //SqlContext.Pipe.Send(ex.Message);
+            errorMessage = new SqlString(ex.Message);
+            //return -1 #SqlBoolean.True;
+            exitCode = new SqlInt32(-1);
+        }
+    }
+}
