@@ -162,9 +162,9 @@ AS
 		BEGIN
 			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:Retrieving StoredConfig, "', @StoredConfigName, '" from LoggerBase.Config_Saved.')
 			--SELECT @Config = ConfigXML FROM LoggerBase.Config_Saved WHERE ConfigName = @StoredConfigName
-			EXEC LoggerBase.Config_Retrieve @Override = NULL, @Config = @Config OUTPUT, @Debug = @Debug
+			EXEC LoggerBase.Config_Retrieve @Override = NULL, @SavedConfigName = @StoredConfigName, @Config = @Config OUTPUT, @Debug = @Debug
 			DECLARE @RowCount INT = @@ROWCOUNT
-			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']: ', @RowCount, ' row(s) returned from LoggerBase.Config_Save.')
+			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']: ', @RowCount, ' row(s) returned from LoggerBase.Config_Retrieve.')
 		END
 		--EXEC LoggerBase.Config_Retrieve @Override = @Config, @Config = @PrivateConfig OUTPUT, @Debug = @Debug
 

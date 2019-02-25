@@ -1,4 +1,4 @@
-CREATE FUNCTION LoggerBase.Info()
+CREATE FUNCTION LoggerBase.VersionInfo()
 RETURNS TABLE
 AS
 RETURN

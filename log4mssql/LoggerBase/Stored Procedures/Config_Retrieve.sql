@@ -31,6 +31,7 @@ GO
 ALTER PROCEDURE [LoggerBase].[Config_Retrieve]
 (
 	 @Override XML = NULL
+	,@SavedConfigName VARCHAR(500) = NULL
     ,@Config XML OUTPUT
 	,@Debug  BIT = 0
 )
@@ -43,6 +44,11 @@ AS
 	BEGIN
 		SET @Config = @Override
 		RETURN
+	END
+
+	IF (@Config IS NULL)
+	BEGIN
+		SELECT @Config = ConfigXML FROM LoggerBase.Config_Saved WHERE ConfigName = @SavedConfigName
 	END
 
 	--IF (@Override IS NULL)

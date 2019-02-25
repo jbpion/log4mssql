@@ -102,7 +102,7 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
     
     CREATE ASSEMBLY [log4mssql]
     FROM $fileByteString
-    WITH PERMISSION_SET = EXTERNAL_ACCESS
+    WITH PERMISSION_SET = UNSAFE
     GO
     "
 
@@ -136,7 +136,7 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
         ,"LoggerBase\Functions\Layout_JsonEscape.sql"
         ,"LoggerBase\Functions\Layout_OriginalUser.sql"
         ,"LoggerBase\Functions\Layout_GetTokens.sql"
-        
+        ,"LoggerBase\Functions\Appender_MutexName.sql"
         #,"LoggerBase\Functions\Session_ContextID_Get.sql"
         #,"LoggerBase\Functions\Session_Level_Get.sql"
         ,"LoggerBase\Functions\Config_Layout.sql"
@@ -144,14 +144,15 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
         ,"LoggerBase\Functions\Config_Root_Get.sql"
         ,"LoggerBase\Functions\Util_Split.sql"
         ,"LoggerBase\Functions\Configuration_Get_Properties.sql"
-        ,"LoggerBase\Functions\Info.sql"
+        ,"LoggerBase\Functions\VersionInfo.sql"
         ,"Logger\Functions\Configuration_Set.sql"
         ,"Logger\Functions\Configuration_Get.sql"
         ,"Logger\Functions\CorrelationId.sql"
         ,"Logger\Functions\Tokens_List.sql"
         ,"Logger\Functions\DefaultErrorMessage.sql"
         
-		,"LoggerBase\Stored Procedures\Appender_File_Private_WriteTextFile.sql"
+    ,"LoggerBase\Stored Procedures\Appender_File_Private_WriteTextFile.sql"
+    ,"LoggerBase\Stored Procedures\Appender_File_Private_WriteTextFileWithMutex.sql"
         #,"LoggerBase\Stored Procedures\Session_ContextID_Set.sql"
         #,"LoggerBase\Stored Procedures\Session_Level_Set.sql"
         #,"LoggerBase\Stored Procedures\Session_Clear.sql"
@@ -165,6 +166,7 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
         ,"LoggerBase\Stored Procedures\Appender_MSSQLSQLDatabaseAppender_ExecNonTransactedQuery.sql"
         ,"LoggerBase\Stored Procedures\Appender_ConsoleAppender.sql"
         ,"LoggerBase\Stored Procedures\Appender_FileAppender.sql"
+        ,"LoggerBase\Stored Procedures\Appender_FileAppender_MinimalLock.sql"
         ,"LoggerBase\Stored Procedures\Appender_MSSQLDatabaseAppender.sql"
         ,"LoggerBase\Stored Procedures\Appender_LocalDatabaseAppender.sql"
         ,"LoggerBase\Stored Procedures\Logger_Base.sql"
