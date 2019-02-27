@@ -45,12 +45,16 @@ AS
 
     SET NOCOUNT ON
 
+	DECLARE @TokenValues LoggerBase.TokenValues
+	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+
 	EXEC LoggerBase.Logger_Base 
 	  @Message               = @Message
 	, @LoggerName            = @LoggerName
 	, @RequestedLogLevelName = 'FATAL'
 	, @Config                = @Config
 	, @StoredConfigName      = @StoredConfigName
-	, @LogConfiguration      = LogConfiguration
+	, @LogConfiguration      = @LogConfiguration
+	, @TokenValues           = @TokenValues
 	, @DEBUG                 = @DEBUG
 

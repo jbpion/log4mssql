@@ -40,7 +40,7 @@ AS RETURN
 (
 	SELECT '%d ' AS Token, 'Date' AS TokenProperty, '' AS TokenDescription, CONCAT(CONVERT(CHAR(10), LoggerBase.Layout_GetDate(), 120), ' ') 
 	AS TokenCurrentValue
-	UNION ALL SELECT '%date', 'Date', '', CONCAT(CONVERT(CHAR(10), LoggerBase.Layout_GetDate(), 120), ' ') 
+	UNION ALL SELECT '%date', 'Date', '', CONCAT(CONVERT(CHAR(10), LoggerBase.Layout_GetDate(), 120), '') 
 	UNION ALL SELECT '%logger',        'Logger',          '', @LoggerName
 	UNION ALL SELECT '%identity',      'Identity',        '', LoggerBase.Layout_LoginUser()
 	UNION ALL SELECT '%m ',             'Message',         '', CONCAT(@Message, ' ')

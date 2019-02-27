@@ -1,15 +1,39 @@
+:SETVAR LOGGINGDATABASE Log4MSSQLBuild
 /*
-This script must be run in SQLCMD mode.
-Select Query->SQLCMD from the menu bar.
+NOTE:
+***This script must be run in SQLCMD mode.
+***Select Query->SQLCMD from the menu bar.
+
+MIT License
+
+Copyright (c) 2017 jbpion
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
---LOGGINGDATABASE: This is the name of the database, on the local instance, having the full install of the 
---log4mssql framework.
-:SETVAR LOGGINGDATABASE Log4MSSQLBuild
+SET NOCOUNT ON;
+
+DECLARE @Message NVARCHAR(MAX);SELECT @Message = CONCAT(CONVERT(NVARCHAR,GETDATE(),121),':Installation started'); RAISERROR(@Message,0,1);
 
 DECLARE @V VARCHAR(50) = (SELECT [Version] FROM [$(LOGGINGDATABASE)].LoggerBase.VersionInfo())
 
-DECLARE @Message VARCHAR(1000) = CONCAT('| Logging database $(LOGGINGDATABASE) is at version ', @V, ' |')
+SET @Message = CONCAT('| Logging database $(LOGGINGDATABASE) is at version ', @V, ' |')
 PRINT CONCAT('+', REPLICATE('-', LEN(@Message)-2), '+')
 PRINT @Message
 PRINT CONCAT('+', REPLICATE('-', LEN(@Message)-2), '+')
@@ -23,36 +47,6 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'LoggerBase')
 BEGIN
 	PRINT 'Creating schema LoggerBase'
 	EXEC('CREATE SCHEMA LoggerBase')
-END
-
-IF OBJECT_ID('Logger.Debug') IS NOT NULL DROP SYNONYM Logger.Debug
-BEGIN
-	PRINT 'Creating synonym Logger.Debug'
-	CREATE SYNONYM Logger.Debug FOR [$(LOGGINGDATABASE)].Logger.Debug
-END
-
-IF OBJECT_ID('Logger.Error') IS NOT NULL DROP SYNONYM Logger.Error
-BEGIN
-	PRINT 'Creating synonym Logger.Error'
-	CREATE SYNONYM Logger.Error FOR [$(LOGGINGDATABASE)].Logger.Error
-END
-
-IF OBJECT_ID('Logger.Fatal') IS NOT NULL DROP SYNONYM Logger.Fatal
-BEGIN
-	PRINT 'Creating synonym Logger.Fatal'
-	CREATE SYNONYM Logger.Fatal FOR [$(LOGGINGDATABASE)].Logger.Fatal
-END
-
-IF OBJECT_ID('Logger.Info') IS NOT NULL DROP SYNONYM Logger.Info
-BEGIN
-	PRINT 'Creating synonym Logger.Info'
-	CREATE SYNONYM Logger.Info FOR [$(LOGGINGDATABASE)].Logger.Info
-END
-
-IF OBJECT_ID('Logger.Warn') IS NOT NULL DROP SYNONYM Logger.Warn
-BEGIN
-	PRINT 'Creating synonym Logger.Warn'
-	CREATE SYNONYM Logger.Warn FOR [$(LOGGINGDATABASE)].Logger.Warn
 END
 
 IF OBJECT_ID('Logger.Tokens_List') IS NOT NULL DROP SYNONYM Logger.Tokens_List
@@ -85,9 +79,353 @@ BEGIN
 	CREATE SYNONYM Logger.DefaultErrorMessage FOR [$(LOGGINGDATABASE)].Logger.DefaultErrorMessage
 END
 
+IF OBJECT_ID('LoggerBase.Logger_Base') IS NOT NULL DROP SYNONYM LoggerBase.Logger_Base
+BEGIN
+	PRINT 'Creating synonym Logger.DefaultErrorMessage'
+	CREATE SYNONYM LoggerBase.Logger_Base FOR [$(LOGGINGDATABASE)].LoggerBase.Logger_Base
+END
+
+
+GO
+IF OBJECT_ID('dbo.LogConfiguration') IS NULL
+CREATE TYPE [dbo].[LogConfiguration] FROM [nvarchar](max) NULL
+GO
+
+
+GO
+
+CREATE TYPE LoggerBase.TokenValues AS TABLE 
+(
+	 ServerName    SYSNAME     NULL
+	,DatabaseName  SYSNAME     NULL
+	,SessionId     INT         NULL
+    --,CorrelationId VARCHAR(20) NULL
+	--,LoggerName    VARCHAR(500) NULL
+)
+
+GO
+IF OBJECT_ID('Logger.Debug') IS NOT NULL
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE Logger.Debug
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
+GO
+
+/*********************************************************************************************
+
+    PROCEDURE Logger.Debug
+
+    Date:           07/07/2017
+    Author:         Jerome Pion
+    Description:    Log a DEBUG level message.
+
+    --TEST
+	EXEC Logger.Debug 'A test debug message', 'Test Logger'
+	EXEC Logger.Debug @Message = 'A test debug message', @LoggerName = 'Test Logger', @Debug = 1
+
+	EXEC LoggerBase.Session_Level_Set 'DEBUG', @Debug = 1
+	SELECT LoggerBase.Session_ContextID_Get()
+	SELECT LoggerBase.Session_Level_Get()
+	
+	EXEC Logger.Debug 'A test debug message', 'Test Logger'
+	EXEC Logger.Debug @Message = 'A test debug message', @LoggerName = 'Test Logger', @Debug = 1
+
+**********************************************************************************************/
+
+ALTER PROCEDURE Logger.Debug
+(
+	  @Message               VARCHAR(MAX)
+	, @LoggerName            VARCHAR(500) = NULL
+	, @Config                XML          = NULL
+	, @StoredConfigName      VARCHAR(500) = NULL
+	, @LogConfiguration      LogConfiguration	
+	, @Debug                 BIT          = 0
+)
+
+AS
+
+    SET NOCOUNT ON
+
+	DECLARE @TokenValues LoggerBase.TokenValues
+	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+
+	EXEC LoggerBase.Logger_Base 
+	  @Message               = @Message
+	, @LoggerName            = @LoggerName
+	, @RequestedLogLevelName = 'DEBUG'
+	, @Config                = @Config
+	, @StoredConfigName      = @StoredConfigName
+	, @LogConfiguration      = @LogConfiguration
+	, @TokenValues           = @TokenValues
+	, @DEBUG                 = @DEBUG
+
+GO
+IF OBJECT_ID('Logger.Error') IS NOT NULL
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE Logger.Error
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
+GO
+
+/*********************************************************************************************
+
+    PROCEDURE Logger.ERROR
+
+    Date:           11/28/2017
+    Author:         Jerome Pion
+    Description:    Log a ERROR level message.
+
+    --TEST
+	EXEC Logger.ERROR 'A test ERROR message', 'Test Logger'
+	EXEC Logger.ERROR @Message = 'A test ERROR message', @LoggerName = 'Test Logger', @DEBUG = 1
+
+	EXEC LoggerBase.Session_Level_Set 'ERROR', @ERROR = 1
+	SELECT LoggerBase.Session_ContextID_Get()
+	SELECT LoggerBase.Session_Level_Get()
+	
+	EXEC Logger.ERROR 'A test ERROR message', 'Test Logger'
+	EXEC Logger.ERROR @Message = 'A test ERROR message', @LoggerName = 'Test Logger', @DEBUG = 1
+
+**********************************************************************************************/
+
+ALTER PROCEDURE [Logger].[Error]
+(
+	  @Message               VARCHAR(MAX)
+	, @LoggerName            VARCHAR(500) = NULL
+	, @Config                XML          = NULL
+	, @StoredConfigName      VARCHAR(500) = NULL
+	, @LogConfiguration      LogConfiguration = NULL
+	, @DEBUG                 BIT          = 0
+)
+
+AS
+
+    SET NOCOUNT ON
+
+	DECLARE @TokenValues LoggerBase.TokenValues
+	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+
+	EXEC LoggerBase.Logger_Base 
+	  @Message               = @Message
+	, @LoggerName            = @LoggerName
+	, @RequestedLogLevelName = 'ERROR'
+	, @Config                = @Config
+	, @StoredConfigName      = @StoredConfigName
+	, @LogConfiguration      = @LogConfiguration
+	, @TokenValues           = @TokenValues
+	, @DEBUG                 = @DEBUG
+
+GO
+
+
+GO
+IF OBJECT_ID('Logger.Fatal') IS NOT NULL
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE Logger.Fatal
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
+GO
+
+/*********************************************************************************************
+
+    PROCEDURE Logger.Fatal
+
+    Date:           11/28/2017
+    Author:         Jerome Pion
+    Description:    Log a Fatal level message.
+
+    --TEST
+	EXEC Logger.Fatal 'A test Fatal message', 'Test Logger'
+	EXEC Logger.Fatal @Message = 'A test Fatal message', @LoggerName = 'Test Logger', @DEBUG = 1
+
+	EXEC LoggerBase.Session_Level_Set 'Fatal', @Fatal = 1
+	SELECT LoggerBase.Session_ContextID_Get()
+	SELECT LoggerBase.Session_Level_Get()
+	
+	EXEC Logger.Fatal 'A test Fatal message', 'Test Logger'
+	EXEC Logger.Fatal @Message = 'A test Fatal message', @LoggerName = 'Test Logger', @DEBUG = 1
+
+**********************************************************************************************/
+
+ALTER PROCEDURE Logger.Fatal
+(
+	  @Message               VARCHAR(MAX)
+	, @LoggerName            VARCHAR(500) = NULL
+	, @Config                XML          = NULL
+	, @StoredConfigName      VARCHAR(500) = NULL
+	, @LogConfiguration      LogConfiguration
+	, @DEBUG                 BIT          = 0
+)
+
+AS
+
+    SET NOCOUNT ON
+
+	DECLARE @TokenValues LoggerBase.TokenValues
+	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+
+	EXEC LoggerBase.Logger_Base 
+	  @Message               = @Message
+	, @LoggerName            = @LoggerName
+	, @RequestedLogLevelName = 'FATAL'
+	, @Config                = @Config
+	, @StoredConfigName      = @StoredConfigName
+	, @LogConfiguration      = @LogConfiguration
+	, @TokenValues           = @TokenValues
+	, @DEBUG                 = @DEBUG
+
+GO
+IF OBJECT_ID('Logger.Info') IS NOT NULL
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE Logger.Info
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
+GO
+
+/*********************************************************************************************
+
+    PROCEDURE Logger.Info
+
+    Date:           11/28/2017
+    Author:         Jerome Pion
+    Description:    Log a INFO level message.
+
+    --TEST
+	
+	DECLARE @Config XML = '
+	<log4mssql>
+  <appender name="Test-Console" type="LoggerBase.Appender_ConsoleAppender">
+    <layout type="LoggerBase.Layout_PatternLayout">
+      <conversionPattern value="%timestamp %level %logger-%message" />
+    </layout>
+  </appender>
+  <root>
+    <level value="INFO" />
+    <appender-ref ref="Test-Console" />
+  </root>
+</log4mssql>
+	'
+	DECLARE @LogConfiguration LogConfiguration
+	SET @LogConfiguration = Logger.Configuration_Set(@LogConfiguration, 'ConfigurationXml', CONVERT(NVARCHAR(MAX), @Config))
+	EXEC Logger.Info @Message = 'A test INFO message', @LogConfiguration = @LogConfiguration
+
+**********************************************************************************************/
+
+ALTER PROCEDURE [Logger].[Info]
+(
+	  @Message               VARCHAR(MAX)
+	, @LoggerName            VARCHAR(500) = NULL
+	, @Config                XML          = NULL
+	, @StoredConfigName      VARCHAR(500) = NULL
+	, @LogConfiguration      LogConfiguration	
+	, @DEBUG                 BIT          = 0
+)
+
+AS
+
+    SET NOCOUNT ON
+
+	DECLARE @TokenValues LoggerBase.TokenValues
+	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+
+	EXEC LoggerBase.Logger_Base 
+	  @Message               = @Message
+	, @LoggerName            = @LoggerName
+	, @RequestedLogLevelName = 'INFO'
+	, @Config                = @Config
+	, @StoredConfigName      = @StoredConfigName
+	, @LogConfiguration      = @LogConfiguration
+	, @TokenValues           = @TokenValues
+	, @DEBUG                 = @DEBUG
+
+GO
+
+
+GO
+IF OBJECT_ID('Logger.Warn') IS NOT NULL
+SET NOEXEC ON
+GO
+
+CREATE PROCEDURE Logger.Warn
+AS
+	PRINT 'Stub only'
+GO
+
+SET NOEXEC OFF
+GO
+/*********************************************************************************************
+
+    PROCEDURE Logger.Warn
+
+    Date:           11/28/2017
+    Author:         Jerome Pion
+    Description:    Log a WARN level message.
+
+    --TEST
+	EXEC Logger.WARN 'A test WARN message', 'Test Logger'
+	EXEC Logger.WARN @Message = 'A test WARN message', @LoggerName = 'Test Logger', @DEBUG = 1
+
+	EXEC LoggerBase.Session_Level_Set 'WARN', @WARN = 1
+	SELECT LoggerBase.Session_ContextID_Get()
+	SELECT LoggerBase.Session_Level_Get()
+	
+	EXEC Logger.WARN 'A test WARN message', 'Test Logger'
+	EXEC Logger.WARN @Message = 'A test WARN message', @LoggerName = 'Test Logger', @DEBUG = 1
+
+**********************************************************************************************/
+
+ALTER PROCEDURE Logger.Warn
+(
+	  @Message               VARCHAR(MAX)
+	, @LoggerName            VARCHAR(500) = NULL
+	, @Config                XML          = NULL
+	, @StoredConfigName      VARCHAR(500) = NULL
+	, @LogConfiguration      LogConfiguration
+	, @DEBUG                 BIT          = 0
+)
+
+AS
+
+    SET NOCOUNT ON
+
+	DECLARE @TokenValues LoggerBase.TokenValues
+	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+
+	EXEC LoggerBase.Logger_Base 
+	  @Message               = @Message
+	, @LoggerName            = @LoggerName
+	, @RequestedLogLevelName = 'WARN'
+	, @Config                = @Config
+	, @StoredConfigName      = @StoredConfigName
+	, @LogConfiguration      = @LogConfiguration
+	, @TokenValues           = @TokenValues
+	, @DEBUG                 = @DEBUG
+
+GO
 RAISERROR('',0,1)WITH NOWAIT;
 RAISERROR('+-----------------------------------------+',0,1)WITH NOWAIT;
 RAISERROR('|                                         |',0,1)WITH NOWAIT;
 RAISERROR('| log4mssql remote installation complete  |',0,1)WITH NOWAIT;
 RAISERROR('|                                         |',0,1)WITH NOWAIT;
 RAISERROR('+-----------------------------------------+',0,1)WITH NOWAIT;
+GO
