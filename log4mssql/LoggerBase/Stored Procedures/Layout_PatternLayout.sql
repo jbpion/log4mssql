@@ -29,6 +29,18 @@ GO
 	, @FormattedMessage = @FormattedMessage OUTPUT
 	SELECT @FormattedMessage
 
+	DECLARE @FormattedMessage2 VARCHAR(MAX)
+	EXEC LoggerBase.Layout_PatternLayout 
+	  @LoggerName   = 'LoggerName'
+	, @LogLevelName = 'DEBUG'
+	, @Message      = 'A test message'
+	, @Config       = '<layout type="LoggerBase.Layout_PatternLayout"><conversionPattern value="[%timestamp] [%thread] [%dbname] %level - %logger - %message%newline"/></layout>'
+	, @Debug        = 1
+	, @TokenValues = 'AServer|ADbName|'
+	, @FormattedMessage = @FormattedMessage2 OUTPUT
+
+	SELECT @FormattedMessage2
+
 **********************************************************************************************/
 
 ALTER PROCEDURE LoggerBase.Layout_PatternLayout
@@ -40,7 +52,7 @@ ALTER PROCEDURE LoggerBase.Layout_PatternLayout
 	, @Config       XML
 	, @Debug        BIT=0
 	, @CorrelationId VARCHAR(20) = NULL
-	, @TokenValues   LoggerBase.TokenValues READONLY
+	, @TokenValues   VARCHAR(MAX)
 	, @FormattedMessage VARCHAR(MAX) OUTPUT
 )
 AS
@@ -70,7 +82,7 @@ AS
 
 	DECLARE @ServerName SYSNAME, @DatabaseName SYSNAME, @SessionID INT
 	SELECT @ServerName = ServerName, @DatabaseName = DatabaseName, @SessionID = SessionID
-	FROM @TokenValues
+	FROM LoggerBase.Layout_Tokens_Pivot(@TokenValues)
 
 	
 	--SELECT @FormattedMessage = REPLACE(@FormattedMessage, Token, COALESCE(TokenCurrentValue,''))

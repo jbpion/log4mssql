@@ -20,13 +20,13 @@ GO
 
     --TEST
 	DECLARE @FormattedMessage VARCHAR(MAX)
-	DECLARE @TokenValues LoggerBase.TokenValues
-	INSERT INTO @TokenValues VALUES ('ADbName', 'LocalServerName', 20)
+	DECLARE @TokenValues VARCHAR(MAX) = 'LocalServerName|ADbName|20'
+	
 	EXEC LoggerBase.Layout_JSONLayout 
 	  @LoggerName   = 'LoggerName'
 	, @LogLevelName = 'DEBUG'
 	, @Message      = 'A test message'
-	, @Config       = '<layout type="LoggerBase.Layout_JSONLayout"><conversionPattern value="%timestamp|%thread|%level|%correlationid|%logger|%message" delimiter="|"/></layout>'
+	, @Config       = '<layout type="LoggerBase.Layout_JSONLayout"><conversionPattern value="%timestamp|%server|%dbname|%thread|%level|%correlationid|%logger|%message" delimiter="|"/></layout>'
 	, @Debug        = 0
 	, @TokenValues  = @TokenValues
 	, @FormattedMessage = @FormattedMessage OUTPUT
@@ -42,7 +42,7 @@ ALTER PROCEDURE LoggerBase.Layout_JsonLayout
 	, @Config       XML
 	, @Debug        BIT=0
 	, @CorrelationId VARCHAR(20) = NULL
-	, @TokenValues   LoggerBase.TokenValues READONLY
+	, @TokenValues   VARCHAR(MAX)
 	, @FormattedMessage VARCHAR(MAX) OUTPUT
 )
 AS
@@ -61,7 +61,7 @@ AS
 
 	DECLARE @ServerName SYSNAME, @DatabaseName SYSNAME, @SessionID INT
 	SELECT @ServerName = ServerName, @DatabaseName = DatabaseName, @SessionID = SessionID
-	FROM @TokenValues
+	FROM LoggerBase.Layout_Tokens_Pivot(@TokenValues)
 
 	
 	SELECT @FormattedMessage = COALESCE(@FormattedMessage + ',', '') + CONCAT('"', TokenProperty, '":"', LoggerBase.Layout_JsonEscape(TokenCurrentValue), '"')

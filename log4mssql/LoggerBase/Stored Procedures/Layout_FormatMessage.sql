@@ -53,7 +53,7 @@ ALTER PROCEDURE LoggerBase.Layout_FormatMessage
 	, @Message          VARCHAR(MAX)
 	, @LayoutConfig     XML
 	, @Debug            BIT
-	, @TokenValues      LoggerBase.TokenValues READONLY
+	, @TokenValues      VARCHAR(MAX)
 	, @FormattedMessage VARCHAR(MAX) OUTPUT
 )
 
@@ -71,7 +71,7 @@ AS
 		PRINT CONCAT('[',OBJECT_NAME(@@PROCID),']:@LayoutConfig:', CONVERT(VARCHAR(MAX), @LayoutConfig))
 	END
 
-	EXECUTE sp_executesql @SQL, N'@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @Debug BIT, @CorrelationId VARCHAR(50), @TokenValues LoggerBase.TokenValues READONLY, @FormattedMessage VARCHAR(MAX) OUTPUT'
+	EXECUTE sp_executesql @SQL, N'@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @Debug BIT, @CorrelationId VARCHAR(50), @TokenValues VARCHAR(MAX), @FormattedMessage VARCHAR(MAX) OUTPUT'
 	,@LoggerName       = @LoggerName
 	,@LogLevelName     = @LogLevelName
 	,@Message          = @Message

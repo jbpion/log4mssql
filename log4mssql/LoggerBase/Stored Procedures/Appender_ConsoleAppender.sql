@@ -42,7 +42,7 @@ GO
 
 **********************************************************************************************/
 
-ALTER PROCEDURE LoggerBase.Appender_ConsoleAppender (@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT=0, @TokenValues LoggerBase.TokenValues READONLY)
+ALTER PROCEDURE LoggerBase.Appender_ConsoleAppender (@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT=0, @TokenValues VARCHAR(MAX))
 AS
 	
 	SET NOCOUNT ON

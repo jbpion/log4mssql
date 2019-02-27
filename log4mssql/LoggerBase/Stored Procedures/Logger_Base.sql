@@ -154,7 +154,7 @@ CREATE PROCEDURE [LoggerBase].[Logger_Base]
 	, @LogConfiguration      LogConfiguration = NULL
 	, @CorrelationId         VARCHAR(50) = NULL
 	, @Debug                 BIT = 0
-	, @TokenValues        LoggerBase.TokenValues READONLY
+	, @TokenValues           VARCHAR(MAX)
 )
 
 AS
@@ -240,7 +240,7 @@ AS
 			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@Message:', @Message)
 			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@AppenderConfig:', CONVERT(VARCHAR(MAX), @AppenderConfig))
 
-			EXECUTE sp_executesql @SQL, N'@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT, @TokenValues LoggerBase.TokenValues READONLY'
+			EXECUTE sp_executesql @SQL, N'@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT, @TokenValues VARCHAR(MAX)'
 			, @LoggerName    = @LoggerName
 			, @LogLevelName  = @RequestedLogLevelName
 			, @Message       = @Message

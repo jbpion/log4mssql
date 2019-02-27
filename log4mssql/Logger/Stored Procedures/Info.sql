@@ -53,8 +53,7 @@ AS
 
     SET NOCOUNT ON
 
-	DECLARE @TokenValues LoggerBase.TokenValues
-	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+	DECLARE @TokenValues VARCHAR(MAX) = CONCAT(@@SERVERNAME, '|', DB_NAME(), '|', @@SPID)
 
 	EXEC LoggerBase.Logger_Base 
 	  @Message               = @Message
