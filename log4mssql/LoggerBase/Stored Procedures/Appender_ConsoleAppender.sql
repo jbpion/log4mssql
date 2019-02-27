@@ -21,6 +21,9 @@ GO
 	DECLARE @LoggerName   VARCHAR(500) = 'TestAppenderLoggerBase'
 	DECLARE @LogLevelName VARCHAR(500) = 'DEBUG'
 	DECLARE @Message      VARCHAR(MAX) = 'Appender test message!'
+	DECLARE @TokenValues  LoggerBase.TokenValues
+	DECLARE @CorrelationId VARCHAR(20) = '1234-F'
+	INSERT INTO @TokenValues (ServerName, DatabaseName, SessionId) VALUES ('ADb', 'AServer', 20)
 	DECLARE @Config       XML          = '<appender name="A1" type="LoggerBase.Appender_ConsoleAppender">
 	<!-- A1 uses PatternLayout -->
 	<layout type="LoggerBase.Layout_PatternLayout">
@@ -33,11 +36,13 @@ GO
 	, @LogLevelName = @LogLevelName 
 	, @Message      = @Message
 	, @Config       = @Config
+	, @TokenValues  = @TokenValues
+	, @CorrelationId = @CorrelationId
 	, @Debug        = 1
 
 **********************************************************************************************/
 
-ALTER PROCEDURE LoggerBase.Appender_ConsoleAppender (@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT=0)
+ALTER PROCEDURE LoggerBase.Appender_ConsoleAppender (@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT=0, @TokenValues LoggerBase.TokenValues READONLY)
 AS
 	
 	SET NOCOUNT ON
@@ -67,6 +72,7 @@ AS
 		, @LayoutConfig    = @LayoutConfig
 		, @CorrelationId   = @CorrelationId
 		, @Debug           = @Debug
+		, @TokenValues     = @TokenValues
 		, @FormattedMessage = @FormattedMessage OUTPUT
 
 	PRINT @FormattedMessage

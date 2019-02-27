@@ -106,6 +106,42 @@ EXEC LoggerBase.Logger_Base
 , @RequestedLogLevelName = 'DEBUG'
 , @Debug                 = 1
 
+EXEC LoggerBase.Logger_Base 
+  @Message               = 'Some message.'
+, @LoggerName            = 'DefaultConfigLogger'
+, @RequestedLogLevelName = 'INFO'
+, @Debug                 = 1
+
+DECLARE @TokenValues LoggerBase.TokenValues
+, @TestConfig XML = 
+'<log4mssql>
+    <!-- A1 is set to be a ConsoleAppender -->
+    <appender name="A1" type="LoggerBase.Appender_ConsoleAppender">
+ 
+        <!-- A1 uses PatternLayout -->
+        <layout type="LoggerBase.Layout_PatternLayout">
+            <conversionPattern value="****TEST RESULT****%timestamp [%thread] %level %logger - %message %dbname" />
+        </layout>
+    </appender>
+	
+	
+    <!-- Set root logger level to DEBUG and its only appenders to A1, A2, MSSQLAppender -->
+    <root>
+        <level value="DEBUG" />
+        <appender-ref ref="A1" />
+    </root>
+</log4mssql>'
+
+INSERT INTO @TokenValues (ServerName, DatabaseName, SessionId) VALUES ('MyServer', 'MyDatabase', '1234')
+
+EXEC LoggerBase.Logger_Base 
+  @Message               = 'Some message.'
+, @LoggerName            = 'DefaultConfigLogger'
+, @RequestedLogLevelName = 'INFO'
+, @Config                = @TestConfig
+, @Debug                 = 1
+, @TokenValues           = @TokenValues
+
 **********************************************************************************************/
 
 CREATE PROCEDURE [LoggerBase].[Logger_Base] 
@@ -118,6 +154,7 @@ CREATE PROCEDURE [LoggerBase].[Logger_Base]
 	, @LogConfiguration      LogConfiguration = NULL
 	, @CorrelationId         VARCHAR(50) = NULL
 	, @Debug                 BIT = 0
+	, @TokenValues        LoggerBase.TokenValues READONLY
 )
 
 AS
@@ -125,9 +162,6 @@ AS
     SET NOCOUNT ON
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
 
-	--DECLARE @PrivateConfig XML
-
-	--select * FROM LoggerBase.Configuration_Get_Properties(@LogConfiguration) C
 	BEGIN TRY
 		SELECT 
 		 @LoggerName       = COALESCE(@LoggerName, C.ConfigurationPropertyValue)
@@ -155,7 +189,6 @@ AS
 
 		IF (RTRIM(@LoggerName) = '') SET @LoggerName = 'NoLogNameSupplied'
 		IF (RTRIM(@CorrelationId) = '') SET @CorrelationId = Logger.CorrelationId()
-
 
 		--TODO: Normalize out get by config name
 		IF (@Config IS NULL) 
@@ -197,7 +230,7 @@ AS
 
 		WHILE (@Counter <= @Limit)
 		BEGIN
-			SELECT @SQL = CONCAT(A.AppenderType, ' @LoggerName, @LogLevelName, @Message, @Config, @CorrelationId, @Debug')
+			SELECT @SQL = CONCAT(A.AppenderType, ' @LoggerName, @LogLevelName, @Message, @Config, @CorrelationId, @Debug, @TokenValues')
 			,@AppenderConfig = AppenderConfig
 			FROM @Appenders A
 			WHERE 1=1
@@ -207,20 +240,22 @@ AS
 			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@Message:', @Message)
 			IF (@Debug = 1) PRINT CONCAT('[', OBJECT_NAME(@@PROCID), ']:@AppenderConfig:', CONVERT(VARCHAR(MAX), @AppenderConfig))
 
-			EXECUTE sp_executesql @SQL, N'@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT'
+			EXECUTE sp_executesql @SQL, N'@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT, @TokenValues LoggerBase.TokenValues READONLY'
 			, @LoggerName    = @LoggerName
 			, @LogLevelName  = @RequestedLogLevelName
 			, @Message       = @Message
 			, @Config        = @AppenderConfig
 			, @CorrelationId = @CorrelationId
 			, @Debug         = @Debug
+			, @TokenValues   = @TokenValues
 
 			SET @Counter += 1
 
 		END
 	END TRY
 	BEGIN CATCH
-		PRINT CONCAT('Procedure ', ERROR_PROCEDURE(), ' on line ', ERROR_LINE(), 'Error Number (', ERROR_NUMBER(),') Message: ', ERROR_MESSAGE())
+		--PRINT CONCAT('Procedure ', ERROR_PROCEDURE(), ' on line ', ERROR_LINE(), 'Error Number (', ERROR_NUMBER(),') Message: ', ERROR_MESSAGE())
+		PRINT (Logger.DefaultErrorMessage())
 	END CATCH
 
 GO

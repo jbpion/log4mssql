@@ -19,15 +19,23 @@ GO
     Description:    Log a INFO level message.
 
     --TEST
-	EXEC Logger.INFO 'A test INFO message', 'Test Logger'
-	EXEC Logger.INFO @Message = 'A test INFO message', @LoggerName = 'Test Logger', @DEBUG = 1
-
-	EXEC LoggerBase.Session_Level_Set 'INFO', @INFO = 1
-	SELECT LoggerBase.Session_ContextID_Get()
-	SELECT LoggerBase.Session_Level_Get()
 	
-	EXEC Logger.INFO 'A test INFO message', 'Test Logger'
-	EXEC Logger.INFO @Message = 'A test INFO message', @LoggerName = 'Test Logger', @DEBUG = 1
+	DECLARE @Config XML = '
+	<log4mssql>
+  <appender name="Test-Console" type="LoggerBase.Appender_ConsoleAppender">
+    <layout type="LoggerBase.Layout_PatternLayout">
+      <conversionPattern value="%timestamp %level %logger-%message" />
+    </layout>
+  </appender>
+  <root>
+    <level value="INFO" />
+    <appender-ref ref="Test-Console" />
+  </root>
+</log4mssql>
+	'
+	DECLARE @LogConfiguration LogConfiguration
+	SET @LogConfiguration = Logger.Configuration_Set(@LogConfiguration, 'ConfigurationXml', CONVERT(NVARCHAR(MAX), @Config))
+	EXEC Logger.Info @Message = 'A test INFO message', @LogConfiguration = @LogConfiguration
 
 **********************************************************************************************/
 
@@ -45,6 +53,9 @@ AS
 
     SET NOCOUNT ON
 
+	DECLARE @TokenValues LoggerBase.TokenValues
+	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+
 	EXEC LoggerBase.Logger_Base 
 	  @Message               = @Message
 	, @LoggerName            = @LoggerName
@@ -52,6 +63,7 @@ AS
 	, @Config                = @Config
 	, @StoredConfigName      = @StoredConfigName
 	, @LogConfiguration      = @LogConfiguration
+	, @TokenValues           = @TokenValues
 	, @DEBUG                 = @DEBUG
 
 GO

@@ -40,6 +40,7 @@ ALTER PROCEDURE LoggerBase.Layout_PatternLayout
 	, @Config       XML
 	, @Debug        BIT=0
 	, @CorrelationId VARCHAR(20) = NULL
+	, @TokenValues   LoggerBase.TokenValues READONLY
 	, @FormattedMessage VARCHAR(MAX) OUTPUT
 )
 AS
@@ -60,39 +61,32 @@ AS
 		PRINT CONCAT('[',OBJECT_NAME(@@PROCID),']:@ConversionPattern:', @ConversionPattern)
 	END
 
-	SET @FormattedMessage = @ConversionPattern
+	--SET @FormattedMessage = @ConversionPattern
 
 	IF (@Debug = 1) 
 	BEGIN
 		PRINT CONCAT('[',OBJECT_NAME(@@PROCID),']:@FormattedMessage (before replace):', @FormattedMessage)
 	END
 
-	--SELECT @FormattedMessage = REPLACE(@FormattedMessage, Token, TokenCurrentValue)
-	--FROM LoggerBase.Layout_GetTokens(@LoggerName, @LogLevelName, @Message, @CorrelationId)
+	DECLARE @ServerName SYSNAME, @DatabaseName SYSNAME, @SessionID INT
+	SELECT @ServerName = ServerName, @DatabaseName = DatabaseName, @SessionID = SessionID
+	FROM @TokenValues
 
-	SELECT @FormattedMessage = REPLACE(@FormattedMessage, Token, COALESCE(TokenCurrentValue,''))
-	FROM LoggerBase.Layout_GetTokens(@LoggerName, @LogLevelName, @Message, @CorrelationId)
 	
-	--SET @FormattedMessage = REPLACE(@FormattedMessage COLLATE Latin1_General_CS_AS, '%c ', @LoggerName)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%d ', LoggerBase.Layout_GetDate())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%date', LoggerBase.Layout_GetDate())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%identity', LoggerBase.Layout_LoginUser())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%level', @LogLevelName)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%logger', @LoggerName)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%m ', @Message)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%message', @Message)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%n ', CHAR(13))
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%newline', CHAR(13))
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%p ', @LogLevelName)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%r ', SYSDATETIME())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '% ', @@SPID)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%thread', @@SPID)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%spid', @@SPID)
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%timestamp', SYSDATETIME())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%u ', LoggerBase.Layout_LoginUser())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%username', LoggerBase.Layout_LoginUser())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%utcdate', SYSUTCDATETIME())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%w ', LoggerBase.Layout_LoginUser())
-	--SET @FormattedMessage = REPLACE(@FormattedMessage, '%correlationid', @CorrelationId)
+	--SELECT @FormattedMessage = REPLACE(@FormattedMessage, Token, COALESCE(TokenCurrentValue,''))
+	--FROM LoggerBase.Layout_GetTokens(@LoggerName, @LogLevelName, @Message, @CorrelationId, @DatabaseName, @ServerName, @SessionId)
+
+	SELECT @FormattedMessage = LoggerBase.Layout_ReplaceTokens(@Message, @ConversionPattern, @LoggerName, @LogLevelName, @CorrelationId, @ServerName, @DatabaseName, @SessionID) 
+--(
+--	 @Message VARCHAR(MAX)
+--	,@ConversionPattern VARCHAR(MAX)
+--	,@LoggerName   VARCHAR(500)
+--	,@LogLevelName VARCHAR(500)
+--	,@CorrelationId VARCHAR(20) = NULL
+--	,@ServerName SYSNAME
+--	,@DatabaseName SYSNAME
+--	,@SessionID INT
+--)
+	
 	
 

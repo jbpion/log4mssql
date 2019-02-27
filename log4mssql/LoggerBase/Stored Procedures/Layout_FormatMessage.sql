@@ -26,15 +26,19 @@ GO
 	, @LayoutConfig     XML
 	, @Debug            BIT
     , @FormattedMessage VARCHAR(MAX)
+	, @TokenValues      LoggerBase.TokenValues
+
+	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES ('AServer', 'ADatabase', '1234')
 
 	EXEC LoggerBase.Layout_FormatMessage 
 		  @LayoutTypeName  = 'LoggerBase.Layout_PatternLayout'
 		, @LoggerName      = 'LoggerName'
 		, @LogLevelName    = 'DEBUG'
 		, @Message         = 'A test message'
-		, @LayoutConfig    = '<layout type="Logger.Layout_PatternLayout"><conversionPattern value="[%timestamp] [%thread] %level - %logger - %message%newline"/></layout>'
+		, @LayoutConfig    = '<layout type="Logger.Layout_PatternLayout"><conversionPattern value="[%timestamp] [%thread] %level - %logger - %message %dbname %server"/></layout>'
 		, @Debug           = 1
 		, @FormattedMessage = @FormattedMessage OUTPUT
+		, @TokenValues     = @TokenValues
 
 	SELECT @FormattedMessage
 
@@ -49,6 +53,7 @@ ALTER PROCEDURE LoggerBase.Layout_FormatMessage
 	, @Message          VARCHAR(MAX)
 	, @LayoutConfig     XML
 	, @Debug            BIT
+	, @TokenValues      LoggerBase.TokenValues READONLY
 	, @FormattedMessage VARCHAR(MAX) OUTPUT
 )
 
@@ -56,7 +61,7 @@ AS
 
     SET NOCOUNT ON
 	
-	DECLARE @SQL NVARCHAR(MAX) = CONCAT(@LayoutTypeName, ' @LoggerName, @LogLevelName, @Message, @Config, @Debug, @CorrelationId, @FormattedMessage OUTPUT')
+	DECLARE @SQL NVARCHAR(MAX) = CONCAT(@LayoutTypeName, ' @LoggerName, @LogLevelName, @Message, @Config, @Debug, @CorrelationId, @TokenValues, @FormattedMessage OUTPUT')
 
 	IF (@Debug = 1) 
 	BEGIN
@@ -66,12 +71,14 @@ AS
 		PRINT CONCAT('[',OBJECT_NAME(@@PROCID),']:@LayoutConfig:', CONVERT(VARCHAR(MAX), @LayoutConfig))
 	END
 
-	EXECUTE sp_executesql @SQL, N'@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @Debug BIT, @CorrelationId VARCHAR(50), @FormattedMessage VARCHAR(MAX) OUTPUT'
+	EXECUTE sp_executesql @SQL, N'@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @Debug BIT, @CorrelationId VARCHAR(50), @TokenValues LoggerBase.TokenValues READONLY, @FormattedMessage VARCHAR(MAX) OUTPUT'
 	,@LoggerName       = @LoggerName
 	,@LogLevelName     = @LogLevelName
 	,@Message          = @Message
 	,@Config           = @LayoutConfig
 	,@Debug            = @Debug
 	,@CorrelationId    = @CorrelationId
+	,@TokenValues      = @TokenValues
 	,@FormattedMessage = @FormattedMessage OUTPUT
+	
 
