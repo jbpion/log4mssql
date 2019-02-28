@@ -85,6 +85,12 @@ BEGIN
 	CREATE SYNONYM LoggerBase.Logger_Base FOR [$(LOGGINGDATABASE)].LoggerBase.Logger_Base
 END
 
+IF OBJECT_ID('LoggerBase.Layout_Tokens_Pivot') IS NOT NULL DROP SYNONYM LoggerBase.Layout_Tokens_Pivot
+BEGIN
+	PRINT 'Creating synonym Logger.Layout_Tokens_Pivot'
+	CREATE SYNONYM LoggerBase.Layout_Tokens_Pivot FOR [$(LOGGINGDATABASE)].LoggerBase.Layout_Tokens_Pivot
+END
+
 
 GO
 IF OBJECT_ID('dbo.LogConfiguration') IS NULL
@@ -125,15 +131,22 @@ GO
     Description:    Log a DEBUG level message.
 
     --TEST
-	EXEC Logger.Debug 'A test debug message', 'Test Logger'
-	EXEC Logger.Debug @Message = 'A test debug message', @LoggerName = 'Test Logger', @Debug = 1
-
-	EXEC LoggerBase.Session_Level_Set 'DEBUG', @Debug = 1
-	SELECT LoggerBase.Session_ContextID_Get()
-	SELECT LoggerBase.Session_Level_Get()
-	
-	EXEC Logger.Debug 'A test debug message', 'Test Logger'
-	EXEC Logger.Debug @Message = 'A test debug message', @LoggerName = 'Test Logger', @Debug = 1
+	DECLARE @Config XML = '
+	<log4mssql>
+  <appender name="Test-Console" type="LoggerBase.Appender_ConsoleAppender">
+    <layout type="LoggerBase.Layout_PatternLayout">
+      <conversionPattern value="%timestamp %level %server %dbname %thread %logger-%message" />
+    </layout>
+  </appender>
+  <root>
+    <level value="DEBUG" />
+    <appender-ref ref="Test-Console" />
+  </root>
+</log4mssql>
+	'
+	DECLARE @LogConfiguration LogConfiguration
+	SET @LogConfiguration = Logger.Configuration_Set(@LogConfiguration, 'ConfigurationXml', CONVERT(NVARCHAR(MAX), @Config))
+	EXEC Logger.Debug @Message = 'A test INFO message', @LogConfiguration = @LogConfiguration
 
 **********************************************************************************************/
 
@@ -151,8 +164,7 @@ AS
 
     SET NOCOUNT ON
 
-	DECLARE @TokenValues LoggerBase.TokenValues
-	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+	DECLARE @TokenValues VARCHAR(MAX) = CONCAT(@@SERVERNAME, '|', DB_NAME(), '|', @@SPID)
 
 	EXEC LoggerBase.Logger_Base 
 	  @Message               = @Message
@@ -186,15 +198,22 @@ GO
     Description:    Log a ERROR level message.
 
     --TEST
-	EXEC Logger.ERROR 'A test ERROR message', 'Test Logger'
-	EXEC Logger.ERROR @Message = 'A test ERROR message', @LoggerName = 'Test Logger', @DEBUG = 1
-
-	EXEC LoggerBase.Session_Level_Set 'ERROR', @ERROR = 1
-	SELECT LoggerBase.Session_ContextID_Get()
-	SELECT LoggerBase.Session_Level_Get()
-	
-	EXEC Logger.ERROR 'A test ERROR message', 'Test Logger'
-	EXEC Logger.ERROR @Message = 'A test ERROR message', @LoggerName = 'Test Logger', @DEBUG = 1
+DECLARE @Config XML = '
+	<log4mssql>
+  <appender name="Test-Console" type="LoggerBase.Appender_ConsoleAppender">
+    <layout type="LoggerBase.Layout_PatternLayout">
+      <conversionPattern value="%timestamp %level %server %dbname %thread %logger-%message" />
+    </layout>
+  </appender>
+  <root>
+    <level value="DEBUG" />
+    <appender-ref ref="Test-Console" />
+  </root>
+</log4mssql>
+	'
+	DECLARE @LogConfiguration LogConfiguration
+	SET @LogConfiguration = Logger.Configuration_Set(@LogConfiguration, 'ConfigurationXml', CONVERT(NVARCHAR(MAX), @Config))
+	EXEC Logger.Error @Message = 'A test INFO message', @LogConfiguration = @LogConfiguration
 
 **********************************************************************************************/
 
@@ -212,8 +231,7 @@ AS
 
     SET NOCOUNT ON
 
-	DECLARE @TokenValues LoggerBase.TokenValues
-	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+	DECLARE @TokenValues VARCHAR(MAX) = CONCAT(@@SERVERNAME, '|', DB_NAME(), '|', @@SPID)
 
 	EXEC LoggerBase.Logger_Base 
 	  @Message               = @Message
@@ -250,15 +268,22 @@ GO
     Description:    Log a Fatal level message.
 
     --TEST
-	EXEC Logger.Fatal 'A test Fatal message', 'Test Logger'
-	EXEC Logger.Fatal @Message = 'A test Fatal message', @LoggerName = 'Test Logger', @DEBUG = 1
-
-	EXEC LoggerBase.Session_Level_Set 'Fatal', @Fatal = 1
-	SELECT LoggerBase.Session_ContextID_Get()
-	SELECT LoggerBase.Session_Level_Get()
-	
-	EXEC Logger.Fatal 'A test Fatal message', 'Test Logger'
-	EXEC Logger.Fatal @Message = 'A test Fatal message', @LoggerName = 'Test Logger', @DEBUG = 1
+	DECLARE @Config XML = '
+	<log4mssql>
+  <appender name="Test-Console" type="LoggerBase.Appender_ConsoleAppender">
+    <layout type="LoggerBase.Layout_PatternLayout">
+      <conversionPattern value="%timestamp %level %server %dbname %thread %logger-%message" />
+    </layout>
+  </appender>
+  <root>
+    <level value="DEBUG" />
+    <appender-ref ref="Test-Console" />
+  </root>
+</log4mssql>
+	'
+	DECLARE @LogConfiguration LogConfiguration
+	SET @LogConfiguration = Logger.Configuration_Set(@LogConfiguration, 'ConfigurationXml', CONVERT(NVARCHAR(MAX), @Config))
+	EXEC Logger.Fatal @Message = 'A test INFO message', @LogConfiguration = @LogConfiguration
 
 **********************************************************************************************/
 
@@ -276,8 +301,7 @@ AS
 
     SET NOCOUNT ON
 
-	DECLARE @TokenValues LoggerBase.TokenValues
-	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+	DECLARE @TokenValues VARCHAR(MAX) = CONCAT(@@SERVERNAME, '|', DB_NAME(), '|', @@SPID)
 
 	EXEC LoggerBase.Logger_Base 
 	  @Message               = @Message
@@ -345,8 +369,7 @@ AS
 
     SET NOCOUNT ON
 
-	DECLARE @TokenValues LoggerBase.TokenValues
-	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+	DECLARE @TokenValues VARCHAR(MAX) = CONCAT(@@SERVERNAME, '|', DB_NAME(), '|', @@SPID)
 
 	EXEC LoggerBase.Logger_Base 
 	  @Message               = @Message
@@ -382,15 +405,22 @@ GO
     Description:    Log a WARN level message.
 
     --TEST
-	EXEC Logger.WARN 'A test WARN message', 'Test Logger'
-	EXEC Logger.WARN @Message = 'A test WARN message', @LoggerName = 'Test Logger', @DEBUG = 1
-
-	EXEC LoggerBase.Session_Level_Set 'WARN', @WARN = 1
-	SELECT LoggerBase.Session_ContextID_Get()
-	SELECT LoggerBase.Session_Level_Get()
-	
-	EXEC Logger.WARN 'A test WARN message', 'Test Logger'
-	EXEC Logger.WARN @Message = 'A test WARN message', @LoggerName = 'Test Logger', @DEBUG = 1
+	DECLARE @Config XML = '
+	<log4mssql>
+  <appender name="Test-Console" type="LoggerBase.Appender_ConsoleAppender">
+    <layout type="LoggerBase.Layout_PatternLayout">
+      <conversionPattern value="%timestamp %level %server %dbname %thread %logger-%message" />
+    </layout>
+  </appender>
+  <root>
+    <level value="DEBUG" />
+    <appender-ref ref="Test-Console" />
+  </root>
+</log4mssql>
+	'
+	DECLARE @LogConfiguration LogConfiguration
+	SET @LogConfiguration = Logger.Configuration_Set(@LogConfiguration, 'ConfigurationXml', CONVERT(NVARCHAR(MAX), @Config))
+	EXEC Logger.Warn @Message = 'A test INFO message', @LogConfiguration = @LogConfiguration
 
 **********************************************************************************************/
 
@@ -408,8 +438,7 @@ AS
 
     SET NOCOUNT ON
 
-	DECLARE @TokenValues LoggerBase.TokenValues
-	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+	DECLARE @TokenValues VARCHAR(MAX) = CONCAT(@@SERVERNAME, '|', DB_NAME(), '|', @@SPID)
 
 	EXEC LoggerBase.Logger_Base 
 	  @Message               = @Message

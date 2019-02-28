@@ -135,6 +135,8 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
         ,"LoggerBase\Functions\Layout_LoginUser.sql"
         ,"LoggerBase\Functions\Layout_JsonEscape.sql"
         ,"LoggerBase\Functions\Layout_OriginalUser.sql"
+        ,"LoggerBase\Functions\Layout_ReplaceTokens.sql"
+        ,"LoggerBase\Functions\Layout_Tokens_Pivot.sql"
         ,"LoggerBase\Functions\Layout_GetTokens.sql"
         ,"LoggerBase\Functions\Appender_MutexName.sql"
         #,"LoggerBase\Functions\Session_ContextID_Get.sql"

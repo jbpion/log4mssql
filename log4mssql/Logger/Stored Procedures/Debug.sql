@@ -19,15 +19,22 @@ GO
     Description:    Log a DEBUG level message.
 
     --TEST
-	EXEC Logger.Debug 'A test debug message', 'Test Logger'
-	EXEC Logger.Debug @Message = 'A test debug message', @LoggerName = 'Test Logger', @Debug = 1
-
-	EXEC LoggerBase.Session_Level_Set 'DEBUG', @Debug = 1
-	SELECT LoggerBase.Session_ContextID_Get()
-	SELECT LoggerBase.Session_Level_Get()
-	
-	EXEC Logger.Debug 'A test debug message', 'Test Logger'
-	EXEC Logger.Debug @Message = 'A test debug message', @LoggerName = 'Test Logger', @Debug = 1
+	DECLARE @Config XML = '
+	<log4mssql>
+  <appender name="Test-Console" type="LoggerBase.Appender_ConsoleAppender">
+    <layout type="LoggerBase.Layout_PatternLayout">
+      <conversionPattern value="%timestamp %level %server %dbname %thread %logger-%message" />
+    </layout>
+  </appender>
+  <root>
+    <level value="DEBUG" />
+    <appender-ref ref="Test-Console" />
+  </root>
+</log4mssql>
+	'
+	DECLARE @LogConfiguration LogConfiguration
+	SET @LogConfiguration = Logger.Configuration_Set(@LogConfiguration, 'ConfigurationXml', CONVERT(NVARCHAR(MAX), @Config))
+	EXEC Logger.Debug @Message = 'A test INFO message', @LogConfiguration = @LogConfiguration
 
 **********************************************************************************************/
 
@@ -45,8 +52,7 @@ AS
 
     SET NOCOUNT ON
 
-	DECLARE @TokenValues LoggerBase.TokenValues
-	INSERT INTO @TokenValues(ServerName, DatabaseName, SessionId) VALUES (@@SERVERNAME, DB_NAME(), @@SPID)
+	DECLARE @TokenValues VARCHAR(MAX) = CONCAT(@@SERVERNAME, '|', DB_NAME(), '|', @@SPID)
 
 	EXEC LoggerBase.Logger_Base 
 	  @Message               = @Message

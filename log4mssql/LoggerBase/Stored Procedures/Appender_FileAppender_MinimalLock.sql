@@ -41,7 +41,7 @@ GO
 
 **********************************************************************************************/
 
-ALTER PROCEDURE LoggerBase.Appender_FileAppender_MinimalLock (@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT=0, @TokenValues LoggerBase.TokenValues READONLY)
+ALTER PROCEDURE LoggerBase.Appender_FileAppender_MinimalLock (@LoggerName VARCHAR(500), @LogLevelName VARCHAR(500), @Message VARCHAR(MAX), @Config XML, @CorrelationId VARCHAR(50), @Debug BIT=0, @TokenValues VARCHAR(MAX))
 AS
 	
 	SET NOCOUNT ON
@@ -93,7 +93,7 @@ AS
 	IF (@FileNameHasTokens = 1)
 	BEGIN
 		SELECT @ServerName = ServerName, @DatabaseName = DatabaseName, @SessionID = @SessionID
-		FROM @TokenValues
+		FROM LoggerBase.Layout_Tokens_Pivot(@TokenValues)
 		SELECT @FileName = LoggerBase.Layout_ReplaceTokens('', @FileName, @LoggerName, @LogLevelName, @CorrelationId, @ServerName, @DatabaseName, @SessionID) 
 	END
 

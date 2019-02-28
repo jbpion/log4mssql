@@ -15,6 +15,6 @@ RETURNS TABLE
 AS RETURN
 (
 	SELECT * 
-	FROM LoggerBase.Layout_GetTokens(NULL, NULL, NULL, NULL, NULL)
+	FROM LoggerBase.Layout_GetTokens(NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 )
 GO
