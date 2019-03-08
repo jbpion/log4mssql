@@ -55,28 +55,28 @@ BEGIN
 	CREATE SYNONYM Logger.Tokens_List FOR [$(LOGGINGDATABASE)].Logger.Tokens_List
 END
 
-IF OBJECT_ID('Logger.Configuration_Get') IS NOT NULL DROP SYNONYM Logger.Configuration_Get
+IF OBJECT_ID('LoggerBase.Configuration_Get') IS NOT NULL DROP SYNONYM LoggerBase.Configuration_Get
 BEGIN
-	PRINT 'Creating synonym Logger.Configuration_Get'
-	CREATE SYNONYM Logger.Configuration_Get FOR [$(LOGGINGDATABASE)].Logger.Configuration_Get
+	PRINT 'Creating synonym LoggerBase.Configuration_Get'
+	CREATE SYNONYM LoggerBase.Configuration_Get FOR [$(LOGGINGDATABASE)].LoggerBase.Configuration_Get
 END
 
-IF OBJECT_ID('Logger.Configuration_Set') IS NOT NULL DROP SYNONYM Logger.Configuration_Set
+IF OBJECT_ID('LoggerBase.Configuration_Set') IS NOT NULL DROP SYNONYM LoggerBase.Configuration_Set
 BEGIN
-	PRINT 'Creating synonym Logger.Configuration_Set'
-	CREATE SYNONYM Logger.Configuration_Set FOR [$(LOGGINGDATABASE)].Logger.Configuration_Set
+	PRINT 'Creating synonym LoggerBase.Configuration_Set'
+	CREATE SYNONYM LoggerBase.Configuration_Set FOR [$(LOGGINGDATABASE)].LoggerBase.Configuration_Set
 END
 
-IF OBJECT_ID('Logger.CorrelationId') IS NOT NULL DROP SYNONYM Logger.CorrelationId
+IF OBJECT_ID('LoggerBase.CorrelationId_Helper') IS NOT NULL DROP SYNONYM LoggerBase.CorrelationId_Helper
 BEGIN
-	PRINT 'Creating synonym Logger.CorrelationId'
-	CREATE SYNONYM Logger.CorrelationId FOR [$(LOGGINGDATABASE)].Logger.CorrelationId
+	PRINT 'Creating synonym LoggerBase.CorrelationId_Helper'
+	CREATE SYNONYM LoggerBase.CorrelationId_Helper FOR [$(LOGGINGDATABASE)].LoggerBase.CorrelationId_Helper
 END
 
-IF OBJECT_ID('Logger.DefaultErrorMessage') IS NOT NULL DROP SYNONYM Logger.DefaultErrorMessage
+IF OBJECT_ID('LoggerBase.DefaultErrorMessage') IS NOT NULL DROP SYNONYM LoggerBase.DefaultErrorMessage
 BEGIN
-	PRINT 'Creating synonym Logger.DefaultErrorMessage'
-	CREATE SYNONYM Logger.DefaultErrorMessage FOR [$(LOGGINGDATABASE)].Logger.DefaultErrorMessage
+	PRINT 'Creating synonym LoggerBase.DefaultErrorMessage'
+	CREATE SYNONYM LoggerBase.DefaultErrorMessage FOR [$(LOGGINGDATABASE)].LoggerBase.DefaultErrorMessage
 END
 
 IF OBJECT_ID('LoggerBase.Logger_Base') IS NOT NULL DROP SYNONYM LoggerBase.Logger_Base
@@ -89,6 +89,12 @@ IF OBJECT_ID('LoggerBase.Layout_Tokens_Pivot') IS NOT NULL DROP SYNONYM LoggerBa
 BEGIN
 	PRINT 'Creating synonym Logger.Layout_Tokens_Pivot'
 	CREATE SYNONYM LoggerBase.Layout_Tokens_Pivot FOR [$(LOGGINGDATABASE)].LoggerBase.Layout_Tokens_Pivot
+END
+
+IF OBJECT_ID('LoggerBase.Util_Configuration_Properties') IS NOT NULL DROP SYNONYM LoggerBase.Util_Configuration_Properties
+BEGIN
+	PRINT 'Creating synonym Logger.Util_Configuration_Properties'
+	CREATE SYNONYM LoggerBase.Util_Configuration_Properties FOR [$(LOGGINGDATABASE)].LoggerBase.Util_Configuration_Properties
 END
 
 

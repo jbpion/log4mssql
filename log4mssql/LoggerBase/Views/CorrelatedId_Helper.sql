@@ -5,4 +5,4 @@
 -- =============================================
 CREATE VIEW LoggerBase.CorrelationId_Helper
 AS
-	SELECT SUBSTRING(CONVERT(VARCHAR(MAX), NEWID()), 1, 20) AS CorrelationId
+	SELECT CAST(SUBSTRING(CONVERT(VARCHAR(MAX), NEWID()), 1, 20) AS VARCHAR(20)) AS CorrelationId

@@ -7,7 +7,7 @@ GO
 -- Create date: 02/12/2019
 -- Description:	Sets values on the configuration "object"
 -- =============================================
-CREATE FUNCTION [Logger].[Configuration_Set] 
+CREATE FUNCTION LoggerBase.[Configuration_Set] 
 (
 	-- Add the parameters for the function here
 	 @Configuration NVARCHAR(MAX)

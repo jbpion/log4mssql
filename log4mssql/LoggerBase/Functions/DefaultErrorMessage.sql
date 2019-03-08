@@ -4,7 +4,7 @@
 -- Create date: 02/21/2019
 -- Description:	Format an error message
 -- =============================================
-CREATE FUNCTION Logger.DefaultErrorMessage 
+CREATE FUNCTION LoggerBase.DefaultErrorMessage 
 (
 	
 )

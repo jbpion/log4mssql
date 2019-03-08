@@ -53,17 +53,23 @@ AS
 
     SET NOCOUNT ON
 
-	DECLARE @TokenValues VARCHAR(MAX) = CONCAT(@@SERVERNAME, '|', DB_NAME(), '|', @@SPID)
+	BEGIN TRY
+		DECLARE @TokenValues VARCHAR(MAX) = CONCAT(@@SERVERNAME, '|', DB_NAME(), '|', @@SPID)
 
-	EXEC LoggerBase.Logger_Base 
-	  @Message               = @Message
-	, @LoggerName            = @LoggerName
-	, @RequestedLogLevelName = 'INFO'
-	, @Config                = @Config
-	, @StoredConfigName      = @StoredConfigName
-	, @LogConfiguration      = @LogConfiguration
-	, @TokenValues           = @TokenValues
-	, @DEBUG                 = @DEBUG
+		EXEC LoggerBase.Logger_Base 
+		  @Message               = @Message
+		, @LoggerName            = @LoggerName
+		, @RequestedLogLevelName = 'INFO'
+		, @Config                = @Config
+		, @StoredConfigName      = @StoredConfigName
+		, @LogConfiguration      = @LogConfiguration
+		, @TokenValues           = @TokenValues
+		, @DEBUG                 = @DEBUG
+	END TRY
+	BEGIN CATCH
+		DECLARE @ErrorMessage VARCHAR(8000) = CONCAT('[',OBJECT_SCHEMA_NAME(@@PROCID),'].[',OBJECT_NAME(@@PROCID),'] An error occurred in the logging framework: ', ERROR_MESSAGE(), ' (', ERROR_NUMBER(), ')')
+		PRINT @ErrorMessage
+	END CATCH
 
 GO
 

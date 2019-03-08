@@ -3,7 +3,7 @@
 -- Create date: 02/12/2019
 -- Description:	Gets a value from the configuration "object"
 -- =============================================
-CREATE FUNCTION Logger.Configuration_Get
+CREATE FUNCTION LoggerBase.Configuration_Get
 (
 	-- Add the parameters for the function here
 	 @Configuration NVARCHAR(MAX)

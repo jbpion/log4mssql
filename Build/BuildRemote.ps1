@@ -74,6 +74,9 @@ task CreateDatabase -depends DropDatabase{
         ,"Logger\Stored Procedures\Fatal.sql"
         ,"Logger\Stored Procedures\Info.sql"
         ,"Logger\Stored Procedures\Warn.sql"
+        ,"Logger\Stored Procedures\Configure.sql"
+        ,"Logger\Stored Procedures\CorrelationId.sql"
+        ,"Logger\Stored Procedures\DefaultErrorMessage.sql"
         , "..\Build\InstallScriptFooterRemote.sql"
       )
 

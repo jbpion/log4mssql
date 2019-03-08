@@ -147,11 +147,11 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
         ,"LoggerBase\Functions\Util_Split.sql"
         ,"LoggerBase\Functions\Configuration_Get_Properties.sql"
         ,"LoggerBase\Functions\VersionInfo.sql"
-        ,"Logger\Functions\Configuration_Set.sql"
-        ,"Logger\Functions\Configuration_Get.sql"
-        ,"Logger\Functions\CorrelationId.sql"
+        ,"LoggerBase\Functions\Configuration_Set.sql"
+        ,"LoggerBase\Functions\Configuration_Get.sql"
+        # ,"LoggerBase\Functions\CorrelationId.sql"
         ,"Logger\Functions\Tokens_List.sql"
-        ,"Logger\Functions\DefaultErrorMessage.sql"
+        ,"LoggerBase\Functions\DefaultErrorMessage.sql"
         
     ,"LoggerBase\Stored Procedures\Appender_File_Private_WriteTextFile.sql"
     ,"LoggerBase\Stored Procedures\Appender_File_Private_WriteTextFileWithMutex.sql"
@@ -177,6 +177,9 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
         ,"Logger\Stored Procedures\Fatal.sql"
         ,"Logger\Stored Procedures\Info.sql"
         ,"Logger\Stored Procedures\Warn.sql"
+        ,"Logger\Stored Procedures\Configure.sql"
+        ,"Logger\Stored Procedures\CorrelationId.sql"
+        ,"Logger\Stored Procedures\DefaultErrorMessage.sql"
         , "..\Build\InstallScriptFooter.sql"
       )
 
