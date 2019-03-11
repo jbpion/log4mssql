@@ -109,7 +109,8 @@ AS
 	,@exitCode INT 
 	,@errorMessage NVARCHAR(4000) 
 
-	DECLARE @MutexName NVARCHAR(4000) = LoggerBase.Appender_MutexName()
+	--DECLARE @MutexName NVARCHAR(4000) = LoggerBase.Appender_MutexName()
+	DECLARE @MutexName NVARCHAR(4000) = CONCAT('log4mssql-', @ServerName, '-', @DatabaseName)
 
 	EXEC LoggerBase.Appender_File_Private_WriteTextFileWithMutex 
 	@text = @text

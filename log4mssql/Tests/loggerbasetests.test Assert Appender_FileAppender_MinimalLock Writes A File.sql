@@ -11,6 +11,7 @@ BEGIN
 			<conversionPattern value="%message" />
 		</layout>
 </appender>'
+	DECLARE @TokenValues VARCHAR(MAX) = 'AServerName|ADatabaseName|1234'
   
   --Act
 	EXEC LoggerBase.Appender_FileAppender_MinimalLock 
@@ -20,6 +21,7 @@ BEGIN
 	, @Config       = @XMLConfig
 	, @Debug        = 1
 	, @CorrelationId = '1'
+	, @TokenValues  = @TokenValues
   
   --Assert
   IF OBJECT_ID('TempDB..#Actual') IS NOT NULL DROP TABLE #Actual
