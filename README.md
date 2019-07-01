@@ -2,10 +2,10 @@
 This is a logging framework for T-SQL (SQL Server) stored procedure that is designed to be similar to Apache's [log4net](https://logging.apache.org/log4net/).
 
 # Overview
-This framework is an attempt to mirror some of the capabilities found in the Apache Project's popular log4net framework in Microsoft SQL Server's T-SQL language. The framework uses a similar XML configuration to log4net which can be set as a default, defined for the scope of a session, or defined ad hoc. A developer, primarily of stored procedures, can create logging statements and then change how messages are layed out and handled without changing any code.
+This framework is an attempt to mirror some of the capabilities found in the Apache Project's popular log4net framework in Microsoft SQL Server's T-SQL language. The framework uses a similar XML configuration to log4net which can be set as a default or defined ad hoc. A developer, primarily of stored procedures, can create logging statements and then change how messages are layed out and handled without changing any code.
 
 # Installation
-Run the log4mssql_install.sql file from the Build folder in the database context where you want to install the framework.
+Run the log4mssql_install.sql file from the Build folder in the database context where you want to install the framework. You can also create a central database that holds the main logging functions for the instance and do a remote install. Execute the LoggerBase.InstallToRemote stored procedure. The "remote" install will create a few stored procedures and then synonyms that point back to your main logging database in the same instance.
 
 # Usage
 The logging stored procedures reflect log4net's log object methods of Debug, Info, Warn, Error, and Fatal. To define a logging statement you provide the message and the logger name. For example:
@@ -13,8 +13,6 @@ The logging stored procedures reflect log4net's log object methods of Debug, Inf
 EXEC Logger.Debug 'A test debug message', 'Test Logger'
 ```
 Will send the message "A test debug message" with a logger name of "Test Logger" to any appenders registered at the debug level if the current logging level is at debug.
-
-If no session configuration is in scope the logger will use the stored default configuration which uses the console appender which to send a print event.
 
 # Getting Started
 log4mssql comes with a default configuration in the LoggerBase.Config_SavedTable. This sets the level at INFO.
@@ -36,27 +34,22 @@ You will get results like the following:
 2017-11-28 12:56:36.9637499 FATAL DefaultTest-Hello, World!
 ```
 # Configuration
-Logging configuration is set at a session level using XML. This XML is similar to log4net.
-## Changing The Logging Level
-One of the most basic configuration changes you can make is to change the logging level. For example, you may have put debug logging in your stored procedure. Normally you don't want to record those statements. If you need to set the level to debug you would change the level in the session.
+Logging configuration is set using XML. Generally you will stored your configuration in the LoggerBase.Config_Saved table. This XML is similar to log4net.
 
-First you run a debug logging call using the default (saved) config:
-```
-EXEC Logger.Debug @Message = 'Hello, World!', @LoggerName = 'DefaultTest'
-```
-Your output should be only:
-```
-Commands completed successfully.
-```
-If you then set the session-scope level to "debug" the framework will send the message to the configured appender. In this case it is the default "console" appender.
-```
-EXEC LoggerBase.Session_Level_Set @LogLevelName = 'DEBUG'
-EXEC Logger.Debug @Message = 'Hello, World!', @LoggerName = 'DefaultTest'
-```
-You should now get a message like:
-```
-2017-11-28 13:09:17.1093443 DEBUG DefaultTest-Hello, World!
-```
+## Initializing the framework
+You will need to initialize the configuration for the framework. This configuration can be passed down to child loggers.
+
+You create a log configuration by declaring a variable of type "LogConfiguration" and then setting its properties using the Logger.Configure stored procedure.
+
+E.g.
+DECLARE @LogConfiguration LogConfiguration
+
+Passing in the @@PROCID will set the logger name to the name of the calling procedure:
+EXEC Logger.Configure @CurrentConfiguration = @LogConfiguration, @NewConfiguration = @LogConfiguration OUTPUT, @CallingProcedureId = @@PROCID
+
+You can also set an explicit logger name:
+EXEC Logger.Configure @CurrentConfiguration = @LogConfiguration, @NewConfiguration = @LogConfiguration OUTPUT, @PropertyName = 'LoggerName', @PropertyValue = 'AssignedLoggerName'
+
 # Appenders
 An appender defines a destination for logging messages.
 
@@ -101,189 +94,4 @@ You should get output that looks similar to:
 ````
 ****TEST RESULT****2018-01-08 15:36:10.6304547 [51] INFO ConsoleLogger - Console appender test
 ````
-## Local Database Appender
-This appender writes to a table in the current (local) database. Any operations are within the parent transaction context meaning that rollbacks could cause write to logging tables to also roll back.
 
-This appender is based on the log4net database appender. You define the insert statement and replacement values.
-````
-DECLARE @Config XML = 
-'<log4mssql>
-	<appender name="LocalDBAppender" type="LoggerBase.Appender_LocalDatabaseAppender">
-		<commandText value="INSERT INTO LoggerBase.SimpleMessages ([Date],[Thread],[Level],[Logger],[Message],[Exception]) VALUES (@log_date, @thread, @log_level, @logger, @message, @exception)" />
-		<parameter>
-			<parameterName value="@log_date" />
-			<dbType value="DateTime" />
-			<layout type="LoggerBase.Layout_PatternLayout">
-				<conversionPattern value="%date" />
-			</layout>
-		</parameter>
-		<parameter>
-			<parameterName value="@thread" />
-			<dbType value="VarChar" />
-		   <size value="255" />
-			<layout type="LoggerBase.Layout_PatternLayout">
-				<conversionPattern value="%thread" />
-			</layout>
-		</parameter>
-		<parameter>
-			<parameterName value="@log_level" />
-			<dbType value="VarChar" />
-		   <size value="50" />
-			<layout type="LoggerBase.Layout_PatternLayout">
-				<conversionPattern value="%level" />
-			</layout>
-		</parameter>
-		<parameter>
-			<parameterName value="@logger" />
-			<dbType value="VarChar" />
-		   <size value="255" />
-			<layout type="LoggerBase.Layout_PatternLayout">
-				<conversionPattern value="%logger" />
-			</layout>
-		</parameter>
-		<parameter>
-			<parameterName value="@message" />
-			<dbType value="NVarChar" />
-		   <size value="4000" />
-			<layout type="LoggerBase.Layout_PatternLayout">
-				<conversionPattern value="%message" />
-			</layout>
-		</parameter>
-		<parameter>
-			<parameterName value="@exception" />
-			<dbType value="VarChar" />
-		   <size value="2000" />
-			<layout type="LoggerBase.Layout_PatternLayout" />
-		</parameter>
-	</appender>
-    <root>
-        <level value="INFO" />
-        <appender-ref ref="LocalDBAppender" />
-    </root>
-</log4mssql>'
-
-IF OBJECT_ID('LoggerBase.SimpleMessages') IS NOT NULL DROP TABLE LoggerBase.SimpleMessages
-CREATE TABLE LoggerBase.SimpleMessages
-(
-	[AuditMessagesID] [bigint] IDENTITY(1,1) NOT NULL,
-	[Date] DATE
-	,[Thread] INT
-	,[Level] VARCHAR(500)
-	,[Logger] VARCHAR(500)
-	,[Message] VARCHAR(MAX)
-	,[Exception] VARCHAR(MAX)
-)
-
-/*Store the configuration in the current session context*/
-EXEC LoggerBase.Session_Config_Set @Config = @Config
-
-/*Call the "info method" and print out our message as defined in the configuration*/
-EXEC Logger.Info @LoggerName = 'DBLogger', @Message = 'My simple message stored in a table.'
-
-SELECT * FROM LoggerBase.SimpleMessages
-````
-You should get output like:
-
-AuditMessagesID|Date      |Thread|Level|Logger  |Message                             |Exception
----------------|----------|------|-----|--------|------------------------------------|---------
-1              |2018-01-08|    51|INFO |DBLogger|My simple message stored in a table.|	
-
-### Advanced Messages
-It is possible to get more customization by using built-in XML handling in SQL Server.
-
-In this case we format our message as XML and pull it apart using computed columns and user-defined functions in our destination table. You will have to create a user-defined function to process the XML in computed columns.
-
-Here's an example:
-````
-DECLARE @Config XML = 
-'<log4mssql>
- <appender name="DBAppenderWithXMLMessage" type="LoggerBase.Appender_LocalDatabaseAppender">
-    <commandText value="INSERT INTO LoggerBase.XMLMessages ([Date],[Thread],[Level],[Logger],[XMLMessage],[Exception]) VALUES (@log_date, @thread, @log_level, @logger, @message, @exception)" />
-    <parameter>
-        <parameterName value="@log_date" />
-        <dbType value="DateTime" />
-        <layout type="LoggerBase.Layout_PatternLayout">
-            <conversionPattern value="%date" />
-        </layout>
-    </parameter>
-    <parameter>
-        <parameterName value="@thread" />
-        <dbType value="VarChar" />
-	   <size value="255" />
-        <layout type="LoggerBase.Layout_PatternLayout">
-            <conversionPattern value="%thread" />
-        </layout>
-    </parameter>
-    <parameter>
-        <parameterName value="@log_level" />
-        <dbType value="VarChar" />
-	   <size value="50" />
-        <layout type="LoggerBase.Layout_PatternLayout">
-            <conversionPattern value="%level" />
-        </layout>
-    </parameter>
-    <parameter>
-        <parameterName value="@logger" />
-        <dbType value="VarChar" />
-	   <size value="255" />
-        <layout type="LoggerBase.Layout_PatternLayout">
-            <conversionPattern value="%logger" />
-        </layout>
-    </parameter>
-    <parameter>
-        <parameterName value="@message" />
-        <dbType value="NVarChar" />
-	   <size value="4000" />
-        <layout type="LoggerBase.Layout_PatternLayout">
-            <conversionPattern value="%message" />
-        </layout>
-    </parameter>
-    <parameter>
-        <parameterName value="@exception" />
-        <dbType value="VarChar" />
-	   <size value="2000" />
-        <layout type="LoggerBase.Layout_PatternLayout" />
-    </parameter>
-</appender>	
-    <root>
-        <level value="INFO" />
-        <appender-ref ref="DBAppenderWithXMLMessage" />
-    </root>
-</log4mssql>'
-
-IF OBJECT_ID('dbo.GetTheMessage') IS NULL
-EXEC('
-CREATE FUNCTION dbo.GetTheMessage(@XMLMessage XML)
-RETURNS VARCHAR(250)
-AS
-BEGIN
-	RETURN @XMLMessage.value(''(/package/message)[1]'', ''VARCHAR(250)'')
-END
-')
-
-IF OBJECT_ID('LoggerBase.XMLMessages') IS NOT NULL DROP TABLE LoggerBase.XMLMessages
-CREATE TABLE LoggerBase.XMLMessages
-(
-	[AuditMessagesID] [bigint] IDENTITY(1,1) NOT NULL,
-	[Date] DATE
-	,[Thread] INT
-	,[Level] VARCHAR(500)
-	,[Logger] VARCHAR(500)
-	,[XMLMessage] XML
-	,[Message] AS dbo.GetTheMessage(XMLMessage)
-	,[Exception] VARCHAR(MAX)
-)
-
-DECLARE @XMLMessage NVARCHAR(MAX) = '   <package name="Ingest_AperiaData">
-	<task name="  Log Package Start"/>
-	<message>Package Started - Parm-PCIVersion: 3.1</message>
-  </package>'
-
-/*Store the configuration in the current session context*/
-EXEC LoggerBase.Session_Config_Set @Config = @Config
-
-/*Call the "info method" and print out our message as defined in the configuration*/
-EXEC Logger.Info @LoggerName = 'DBLogger', @Message = @XMLMessage
-
-SELECT * FROM LoggerBase.XMLMessages
-````
