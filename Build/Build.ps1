@@ -180,6 +180,7 @@ task ScriptAssemblyFromDatabase -depends RegisterAssemblyWithDatabase{
         ,"Logger\Stored Procedures\Configure.sql"
         ,"Logger\Stored Procedures\CorrelationId.sql"
         ,"Logger\Stored Procedures\DefaultErrorMessage.sql"
+        ,"LoggerBase\Stored Procedures\InstallToRemote.sql"
         , "..\Build\InstallScriptFooter.sql"
       )
 

@@ -4,10 +4,11 @@ DROP TABLE [LoggerBase].[Util_Configuration_Properties]
 GO
 
 CREATE TABLE [LoggerBase].[Util_Configuration_Properties](
-	[ConfigurationPropertyId] [int] NULL,
+	[ConfigurationPropertyId] [int] NOT NULL CONSTRAINT [PK_LoggerBase_Util_Configuration_Properties] PRIMARY KEY CLUSTERED ([ConfigurationPropertyId]),
 	[ConfigurationPropertyName] [varchar](250) NULL,
 	[ConfigurationPropertyDataType] [varchar](500) NULL
-) ON [PRIMARY]
+)
+ON [PRIMARY]
 GO
 
 INSERT INTO LoggerBase.Util_Configuration_Properties

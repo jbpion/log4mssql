@@ -69,14 +69,14 @@ task CreateDatabase -depends DropDatabase{
         "..\Build\InstallScriptHeaderRemote.sql"
         ,"Types\LogConfiguration.sql"
         ,"Types\TokenValues.sql"
+        ,"Logger\Stored Procedures\CorrelationId.sql"
+        ,"Logger\Stored Procedures\DefaultErrorMessage.sql"
+        ,"Logger\Stored Procedures\Configure.sql"
         ,"Logger\Stored Procedures\Debug.sql"
         ,"Logger\Stored Procedures\Error.sql"
         ,"Logger\Stored Procedures\Fatal.sql"
         ,"Logger\Stored Procedures\Info.sql"
         ,"Logger\Stored Procedures\Warn.sql"
-        ,"Logger\Stored Procedures\Configure.sql"
-        ,"Logger\Stored Procedures\CorrelationId.sql"
-        ,"Logger\Stored Procedures\DefaultErrorMessage.sql"
         , "..\Build\InstallScriptFooterRemote.sql"
       )
 

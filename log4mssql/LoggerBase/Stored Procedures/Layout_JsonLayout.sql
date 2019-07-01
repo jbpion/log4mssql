@@ -32,6 +32,16 @@ GO
 	, @FormattedMessage = @FormattedMessage OUTPUT
 	SELECT @FormattedMessage
 
+	EXEC LoggerBase.Layout_JSONLayout 
+	  @LoggerName   = 'LoggerName'
+	, @LogLevelName = 'DEBUG'
+	, @Message      = '{"Submessage":"A test JSON object as the message"}'
+	, @Config       = '<layout type="LoggerBase.Layout_JSONLayout"><conversionPattern value="%timestamp|%server|%dbname|%thread|%level|%correlationid|%logger|%message" delimiter="|"/></layout>'
+	, @Debug        = 0
+	, @TokenValues  = @TokenValues
+	, @FormattedMessage = @FormattedMessage OUTPUT
+	SELECT @FormattedMessage
+
 **********************************************************************************************/
 
 ALTER PROCEDURE LoggerBase.Layout_JsonLayout
@@ -47,6 +57,8 @@ ALTER PROCEDURE LoggerBase.Layout_JsonLayout
 )
 AS
 	SET NOCOUNT ON
+
+	SET @FormattedMessage = NULL --Make sure to clear out the return variable.
 
 	IF (@Debug = 1) 
 	BEGIN
@@ -64,7 +76,11 @@ AS
 	FROM LoggerBase.Layout_Tokens_Pivot(@TokenValues)
 
 	
-	SELECT @FormattedMessage = COALESCE(@FormattedMessage + ',', '') + CONCAT('"', TokenProperty, '":"', LoggerBase.Layout_JsonEscape(TokenCurrentValue), '"')
+	SELECT @FormattedMessage = COALESCE(@FormattedMessage + ',', '') + 
+	IIF(SUBSTRING(LTRIM(TokenCurrentValue),1,1) = '{' AND TokenProperty = 'Message', --Assume the user is deliberately supplying a JSON object with a leading {.
+		CONCAT('"', TokenProperty, '":', TokenCurrentValue), --If it's a JSON object do not surround in double quotes.
+		CONCAT('"', TokenProperty, '":"', LoggerBase.Layout_JsonEscape(TokenCurrentValue), '"')
+	)
 	FROM LoggerBase.Util_Split(@ConversionPattern, '|') T
 	--LEFT JOIN @TokenReplacements R ON T.Item = R.TokenElement
 	LEFT JOIN LoggerBase.Layout_GetTokens(@LoggerName, @LogLevelName, @Message, @CorrelationId, @DatabaseName, @ServerName, @SessionId) R ON T.Item = R.Token

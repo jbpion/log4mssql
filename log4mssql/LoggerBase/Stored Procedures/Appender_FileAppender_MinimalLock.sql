@@ -30,6 +30,7 @@ GO
 		</layout>
 		<fileNameHasTokens value="true" />
 </appender>'
+	DECLARE @TokenValues VARCHAR(MAX) = CONCAT(@@SERVERNAME,'|', DB_NAME(), '|', @@SPID)
 
 	EXEC LoggerBase.Appender_FileAppender_MinimalLock
 	  @LoggerName = @LoggerName
@@ -38,6 +39,7 @@ GO
 	, @Config       = @XMLConfig
 	, @CorrelationID = 'ABC-123'
 	, @Debug        = 1
+	, @TokenValues  = @TokenValues
 
 **********************************************************************************************/
 
